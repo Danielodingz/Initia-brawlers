@@ -1,0 +1,36 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Coins } from '../../Coins';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgSpendFeePool as MsgSpendFeePool_pb } from '@initia/opinit.proto/opinit/opchild/v1/tx';
+export declare class MsgSpendFeePool extends JSONSerializable<MsgSpendFeePool.Amino, MsgSpendFeePool.Data, MsgSpendFeePool.Proto> {
+    authority: AccAddress;
+    recipient: AccAddress;
+    amount: Coins;
+    constructor(authority: AccAddress, recipient: AccAddress, amount: Coins.Input);
+    static fromAmino(data: MsgSpendFeePool.Amino): MsgSpendFeePool;
+    toAmino(): MsgSpendFeePool.Amino;
+    static fromData(data: MsgSpendFeePool.Data): MsgSpendFeePool;
+    toData(): MsgSpendFeePool.Data;
+    static fromProto(data: MsgSpendFeePool.Proto): MsgSpendFeePool;
+    toProto(): MsgSpendFeePool.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgSpendFeePool;
+}
+export declare namespace MsgSpendFeePool {
+    interface Amino {
+        type: 'opchild/MsgSpendFeePool';
+        value: {
+            authority: AccAddress;
+            recipient: AccAddress;
+            amount: Coins.Amino | null;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.opchild.v1.MsgSpendFeePool';
+        authority: AccAddress;
+        recipient: AccAddress;
+        amount: Coins.Data;
+    }
+    type Proto = MsgSpendFeePool_pb;
+}

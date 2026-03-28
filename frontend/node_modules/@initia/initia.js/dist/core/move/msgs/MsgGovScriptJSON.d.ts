@@ -1,0 +1,41 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgGovScriptJSON as MsgGovScriptJSON_pb } from '@initia/initia.proto/initia/move/v1/tx';
+export declare class MsgGovScriptJSON extends JSONSerializable<MsgGovScriptJSON.Amino, MsgGovScriptJSON.Data, MsgGovScriptJSON.Proto> {
+    authority: AccAddress;
+    sender: AccAddress;
+    code_bytes: string;
+    type_args: string[];
+    args: string[];
+    constructor(authority: AccAddress, sender: AccAddress, code_bytes: string, type_args?: string[], args?: string[]);
+    static fromAmino(data: MsgGovScriptJSON.Amino): MsgGovScriptJSON;
+    toAmino(): MsgGovScriptJSON.Amino;
+    static fromData(data: MsgGovScriptJSON.Data): MsgGovScriptJSON;
+    toData(): MsgGovScriptJSON.Data;
+    static fromProto(data: MsgGovScriptJSON.Proto): MsgGovScriptJSON;
+    toProto(): MsgGovScriptJSON.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgGovScriptJSON;
+}
+export declare namespace MsgGovScriptJSON {
+    interface Amino {
+        type: 'move/MsgGovScriptJSON';
+        value: {
+            authority: AccAddress;
+            sender: AccAddress;
+            code_bytes: string;
+            type_args?: string[];
+            args?: string[];
+        };
+    }
+    interface Data {
+        '@type': '/initia.move.v1.MsgGovScriptJSON';
+        authority: AccAddress;
+        sender: AccAddress;
+        code_bytes: string;
+        type_args: string[];
+        args: string[];
+    }
+    type Proto = MsgGovScriptJSON_pb;
+}

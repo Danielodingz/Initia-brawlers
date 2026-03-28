@@ -1,0 +1,36 @@
+import { Coins } from '../../Coins';
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgDeposit as MsgDeposit_pb } from '@initia/initia.proto/cosmos/gov/v1beta1/tx';
+export declare class MsgDepositLegacy extends JSONSerializable<MsgDepositLegacy.Amino, MsgDepositLegacy.Data, MsgDepositLegacy.Proto> {
+    proposal_id: number;
+    depositor: AccAddress;
+    amount: Coins;
+    constructor(proposal_id: number, depositor: AccAddress, amount: Coins.Input);
+    static fromAmino(data: MsgDepositLegacy.Amino): MsgDepositLegacy;
+    toAmino(): MsgDepositLegacy.Amino;
+    static fromData(data: MsgDepositLegacy.Data): MsgDepositLegacy;
+    toData(): MsgDepositLegacy.Data;
+    static fromProto(proto: MsgDepositLegacy.Proto): MsgDepositLegacy;
+    toProto(): MsgDepositLegacy.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgDepositLegacy;
+}
+export declare namespace MsgDepositLegacy {
+    interface Amino {
+        type: 'cosmos-sdk/MsgDeposit';
+        value: {
+            proposal_id: string;
+            depositor: AccAddress;
+            amount: Coins.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.gov.v1beta1.MsgDeposit';
+        proposal_id: string;
+        depositor: AccAddress;
+        amount: Coins.Data;
+    }
+    type Proto = MsgDeposit_pb;
+}

@@ -1,0 +1,28 @@
+import { JSONSerializable } from '../../../../../util/json';
+import { AccAddress } from '../../../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgIBCSoftwareUpgrade as MsgIBCSoftwareUpgrade_pb } from '@initia/initia.proto/ibc/core/client/v1/tx';
+import { Plan } from '../../../../upgrade';
+export declare class MsgIBCSoftwareUpgrade extends JSONSerializable<any, MsgIBCSoftwareUpgrade.Data, MsgIBCSoftwareUpgrade.Proto> {
+    plan: Plan;
+    upgraded_client_state: any;
+    signer: string;
+    constructor(plan: Plan, upgraded_client_state: any, signer: string);
+    static fromAmino(_: any): MsgIBCSoftwareUpgrade;
+    toAmino(): any;
+    static fromData(data: MsgIBCSoftwareUpgrade.Data): MsgIBCSoftwareUpgrade;
+    toData(): MsgIBCSoftwareUpgrade.Data;
+    static fromProto(proto: MsgIBCSoftwareUpgrade.Proto): MsgIBCSoftwareUpgrade;
+    toProto(): MsgIBCSoftwareUpgrade.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgIBCSoftwareUpgrade;
+}
+export declare namespace MsgIBCSoftwareUpgrade {
+    interface Data {
+        '@type': '/ibc.core.client.v1.MsgIBCSoftwareUpgrade';
+        plan: Plan.Data;
+        upgraded_client_state: any;
+        signer: AccAddress;
+    }
+    type Proto = MsgIBCSoftwareUpgrade_pb;
+}

@@ -1,0 +1,39 @@
+import { JSONSerializable } from '../../../util/json';
+import { Coins } from '../../Coins';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgExecuteContract as MsgExecuteContract_pb } from '@initia/initia.proto/cosmwasm/wasm/v1/tx';
+export declare class MsgExecuteContract extends JSONSerializable<MsgExecuteContract.Amino, MsgExecuteContract.Data, MsgExecuteContract.Proto> {
+    sender: AccAddress;
+    contract: AccAddress;
+    msg: string;
+    funds: Coins;
+    constructor(sender: AccAddress, contract: AccAddress, msg: string, funds: Coins.Input);
+    static fromAmino(data: MsgExecuteContract.Amino): MsgExecuteContract;
+    toAmino(): MsgExecuteContract.Amino;
+    static fromData(data: MsgExecuteContract.Data): MsgExecuteContract;
+    toData(): MsgExecuteContract.Data;
+    static fromProto(data: MsgExecuteContract.Proto): MsgExecuteContract;
+    toProto(): MsgExecuteContract.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgExecuteContract;
+}
+export declare namespace MsgExecuteContract {
+    interface Amino {
+        type: 'wasm/MsgExecuteContract';
+        value: {
+            sender: AccAddress;
+            contract: AccAddress;
+            msg: JSON;
+            funds: Coins.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/cosmwasm.wasm.v1.MsgExecuteContract';
+        sender: AccAddress;
+        contract: AccAddress;
+        msg: JSON;
+        funds: Coins.Data;
+    }
+    type Proto = MsgExecuteContract_pb;
+}

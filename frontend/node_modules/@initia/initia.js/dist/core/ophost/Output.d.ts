@@ -1,0 +1,30 @@
+import { JSONSerializable } from '../../util/json';
+import { Output as Output_pb } from '@initia/opinit.proto/opinit/ophost/v1/types';
+export declare class Output extends JSONSerializable<Output.Amino, Output.Data, Output.Proto> {
+    output_root: string;
+    l1_block_number: number;
+    l1_block_time: Date;
+    l2_block_number: number;
+    constructor(output_root: string, l1_block_number: number, l1_block_time: Date, l2_block_number: number);
+    static fromAmino(data: Output.Amino): Output;
+    toAmino(): Output.Amino;
+    static fromData(data: Output.Data): Output;
+    toData(): Output.Data;
+    static fromProto(data: Output.Proto): Output;
+    toProto(): Output.Proto;
+}
+export declare namespace Output {
+    interface Amino {
+        output_root: string;
+        l1_block_number: string;
+        l1_block_time: string;
+        l2_block_number: string;
+    }
+    interface Data {
+        output_root: string;
+        l1_block_number: string;
+        l1_block_time: string;
+        l2_block_number: string;
+    }
+    type Proto = Output_pb;
+}

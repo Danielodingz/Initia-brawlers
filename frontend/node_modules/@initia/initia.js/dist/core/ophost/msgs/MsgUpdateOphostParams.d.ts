@@ -1,0 +1,33 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { OphostParams } from '../OphostParams';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateParams as MsgUpdateParams_pb } from '@initia/opinit.proto/opinit/ophost/v1/tx';
+export declare class MsgUpdateOphostParams extends JSONSerializable<MsgUpdateOphostParams.Amino, MsgUpdateOphostParams.Data, MsgUpdateOphostParams.Proto> {
+    authority: AccAddress;
+    params: OphostParams;
+    constructor(authority: AccAddress, params: OphostParams);
+    static fromAmino(data: MsgUpdateOphostParams.Amino): MsgUpdateOphostParams;
+    toAmino(): MsgUpdateOphostParams.Amino;
+    static fromData(data: MsgUpdateOphostParams.Data): MsgUpdateOphostParams;
+    toData(): MsgUpdateOphostParams.Data;
+    static fromProto(data: MsgUpdateOphostParams.Proto): MsgUpdateOphostParams;
+    toProto(): MsgUpdateOphostParams.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateOphostParams;
+}
+export declare namespace MsgUpdateOphostParams {
+    interface Amino {
+        type: 'ophost/MsgUpdateParams';
+        value: {
+            authority: AccAddress;
+            params: OphostParams.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.ophost.v1.MsgUpdateParams';
+        authority: AccAddress;
+        params: OphostParams.Data;
+    }
+    type Proto = MsgUpdateParams_pb;
+}

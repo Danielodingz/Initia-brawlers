@@ -1,0 +1,35 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateACL as MsgUpdateACL_pb } from '@initia/initia.proto/initia/ibchooks/v1/tx';
+export declare class MsgUpdateACL extends JSONSerializable<MsgUpdateACL.Amino, MsgUpdateACL.Data, MsgUpdateACL.Proto> {
+    authority: AccAddress;
+    address: AccAddress;
+    allowed: boolean;
+    constructor(authority: AccAddress, address: AccAddress, allowed: boolean);
+    static fromAmino(data: MsgUpdateACL.Amino): MsgUpdateACL;
+    toAmino(): MsgUpdateACL.Amino;
+    static fromData(data: MsgUpdateACL.Data): MsgUpdateACL;
+    toData(): MsgUpdateACL.Data;
+    static fromProto(data: MsgUpdateACL.Proto): MsgUpdateACL;
+    toProto(): MsgUpdateACL.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateACL;
+}
+export declare namespace MsgUpdateACL {
+    interface Amino {
+        type: 'ibchooks/MsgUpdateACL';
+        value: {
+            authority: AccAddress;
+            address: AccAddress;
+            allowed: boolean;
+        };
+    }
+    interface Data {
+        '@type': '/initia.ibchooks.v1.MsgUpdateACL';
+        authority: AccAddress;
+        address: AccAddress;
+        allowed: boolean;
+    }
+    type Proto = MsgUpdateACL_pb;
+}

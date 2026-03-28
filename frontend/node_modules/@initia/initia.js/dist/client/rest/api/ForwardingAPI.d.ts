@@ -1,0 +1,20 @@
+import { AccAddress, Coin } from '../../../core';
+import { APIParams } from '../APIRequester';
+import { BaseAPI } from './BaseAPI';
+export interface ForwardingStats {
+    num_of_accounts: number;
+    num_of_forwards: number;
+    total_forwarded: Coin;
+}
+export declare namespace ForwardingStats {
+    interface Data {
+        num_of_accounts: string;
+        num_of_forwards: string;
+        total_forwarded: Coin.Data;
+    }
+}
+export declare class ForwardingAPI extends BaseAPI {
+    denoms(params?: APIParams, headers?: Record<string, string>): Promise<string[]>;
+    address(channel: string, recipient: string, fallback: string, params?: APIParams, headers?: Record<string, string>): Promise<AccAddress>;
+    stats(channel: string, params?: APIParams, headers?: Record<string, string>): Promise<ForwardingStats>;
+}

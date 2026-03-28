@@ -1,0 +1,27 @@
+import { CreateAxiosDefaults } from 'axios';
+import { OrderBy as OrderBy_pb } from '@initia/initia.proto/cosmos/tx/v1beta1/service';
+export type APIParams = Record<string, string | number | null | undefined>;
+export interface Pagination {
+    next_key?: string;
+    total: number;
+}
+export declare const OrderBy: typeof OrderBy_pb;
+export type OrderBy = OrderBy_pb;
+export interface PaginationOptions {
+    'pagination.limit': string;
+    'pagination.offset': string;
+    'pagination.key': string;
+    'pagination.count_total': 'true' | 'false';
+    'pagination.reverse': 'true' | 'false';
+    order_by: keyof typeof OrderBy;
+}
+export declare class APIRequester {
+    private axios;
+    private readonly baseURL;
+    constructor(baseURL: string, config?: CreateAxiosDefaults<any> | undefined);
+    private validateEndpoint;
+    private computeEndpoint;
+    getRaw<T>(endpoint: string, params?: URLSearchParams | APIParams, headers?: Record<string, string>): Promise<T>;
+    get<T>(endpoint: string, params?: URLSearchParams | APIParams, headers?: Record<string, string>): Promise<T>;
+    post<T>(endpoint: string, data?: any, headers?: Record<string, string>): Promise<T>;
+}

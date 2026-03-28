@@ -1,0 +1,36 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Coin } from '../../Coin';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgAuctionBid as MsgAuctionBid_pb } from '@initia/initia.proto/sdk/auction/v1/tx';
+export declare class MsgAuctionBid extends JSONSerializable<MsgAuctionBid.Amino, MsgAuctionBid.Data, MsgAuctionBid.Proto> {
+    bidder: AccAddress;
+    bid: Coin;
+    transactions: string[];
+    constructor(bidder: AccAddress, bid: Coin, transactions: string[]);
+    static fromAmino(data: MsgAuctionBid.Amino): MsgAuctionBid;
+    toAmino(): MsgAuctionBid.Amino;
+    static fromData(data: MsgAuctionBid.Data): MsgAuctionBid;
+    toData(): MsgAuctionBid.Data;
+    static fromProto(data: MsgAuctionBid.Proto): MsgAuctionBid;
+    toProto(): MsgAuctionBid.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgAuctionBid;
+}
+export declare namespace MsgAuctionBid {
+    interface Amino {
+        type: 'block-sdk/x/auction/MsgAuctionBid';
+        value: {
+            bidder: AccAddress;
+            bid: Coin.Amino;
+            transactions: string[];
+        };
+    }
+    interface Data {
+        '@type': '/sdk.auction.v1.MsgAuctionBid';
+        bidder: AccAddress;
+        bid: Coin.Data;
+        transactions: string[];
+    }
+    type Proto = MsgAuctionBid_pb;
+}

@@ -1,0 +1,36 @@
+import { Coins } from '../../Coins';
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgSend as MsgSend_pb } from '@initia/initia.proto/cosmos/bank/v1beta1/tx';
+export declare class MsgSend extends JSONSerializable<MsgSend.Amino, MsgSend.Data, MsgSend.Proto> {
+    from_address: AccAddress;
+    to_address: AccAddress;
+    amount: Coins;
+    constructor(from_address: AccAddress, to_address: AccAddress, amount: Coins.Input);
+    static fromAmino(data: MsgSend.Amino): MsgSend;
+    toAmino(): MsgSend.Amino;
+    static fromData(data: MsgSend.Data): MsgSend;
+    toData(): MsgSend.Data;
+    static fromProto(proto: MsgSend.Proto): MsgSend;
+    toProto(): MsgSend.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgSend;
+}
+export declare namespace MsgSend {
+    interface Amino {
+        type: 'cosmos-sdk/MsgSend';
+        value: {
+            from_address: AccAddress;
+            to_address: AccAddress;
+            amount: Coins.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.bank.v1beta1.MsgSend';
+        from_address: AccAddress;
+        to_address: AccAddress;
+        amount: Coins.Data;
+    }
+    type Proto = MsgSend_pb;
+}

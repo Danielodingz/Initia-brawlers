@@ -1,0 +1,25 @@
+import { ClientConsensusStates as ClientConsensusStates_pb } from '@initia/initia.proto/ibc/core/client/v1/client';
+import { JSONSerializable } from '../../../../util/json';
+import { ConsensusStateWithHeight } from './ConsensusStateWithHeight';
+export declare class ClientConsensusStates extends JSONSerializable<ClientConsensusStates.Amino, ClientConsensusStates.Data, ClientConsensusStates.Proto> {
+    client_id: string;
+    consensus_states: ConsensusStateWithHeight[];
+    constructor(client_id: string, consensus_states: ConsensusStateWithHeight[]);
+    static fromAmino(data: ClientConsensusStates.Amino): ClientConsensusStates;
+    toAmino(): ClientConsensusStates.Amino;
+    static fromData(data: ClientConsensusStates.Data): ClientConsensusStates;
+    toData(): ClientConsensusStates.Data;
+    static fromProto(proto: ClientConsensusStates.Proto): ClientConsensusStates;
+    toProto(): ClientConsensusStates.Proto;
+}
+export declare namespace ClientConsensusStates {
+    interface Amino {
+        client_id: string;
+        consensus_states: ConsensusStateWithHeight.Amino[];
+    }
+    interface Data {
+        client_id: string;
+        consensus_states: ConsensusStateWithHeight.Data[];
+    }
+    type Proto = ClientConsensusStates_pb;
+}

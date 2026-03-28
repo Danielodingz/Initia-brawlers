@@ -1,0 +1,33 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { SlashingParams } from '../SlashingParams';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateParams as MsgUpdateParams_pb } from '@initia/initia.proto/cosmos/slashing/v1beta1/tx';
+export declare class MsgUpdateSlashingParams extends JSONSerializable<MsgUpdateSlashingParams.Amino, MsgUpdateSlashingParams.Data, MsgUpdateSlashingParams.Proto> {
+    authority: AccAddress;
+    params: SlashingParams;
+    constructor(authority: AccAddress, params: SlashingParams);
+    static fromAmino(data: MsgUpdateSlashingParams.Amino): MsgUpdateSlashingParams;
+    toAmino(): MsgUpdateSlashingParams.Amino;
+    static fromData(data: MsgUpdateSlashingParams.Data): MsgUpdateSlashingParams;
+    toData(): MsgUpdateSlashingParams.Data;
+    static fromProto(data: MsgUpdateSlashingParams.Proto): MsgUpdateSlashingParams;
+    toProto(): MsgUpdateSlashingParams.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateSlashingParams;
+}
+export declare namespace MsgUpdateSlashingParams {
+    interface Amino {
+        type: 'cosmos-sdk/x/slashing/MsgUpdateParams';
+        value: {
+            authority: AccAddress;
+            params: SlashingParams.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.slashing.v1beta1.MsgUpdateParams';
+        authority: AccAddress;
+        params: SlashingParams.Data;
+    }
+    type Proto = MsgUpdateParams_pb;
+}

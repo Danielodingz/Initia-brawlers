@@ -1,0 +1,35 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { MsgUpdateChallenger as MsgUpdateChallenger_pb } from '@initia/opinit.proto/opinit/ophost/v1/tx';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+export declare class MsgUpdateChallenger extends JSONSerializable<MsgUpdateChallenger.Amino, MsgUpdateChallenger.Data, MsgUpdateChallenger.Proto> {
+    authority: AccAddress;
+    bridge_id: number;
+    challenger: AccAddress;
+    constructor(authority: AccAddress, bridge_id: number, challenger: AccAddress);
+    static fromAmino(data: MsgUpdateChallenger.Amino): MsgUpdateChallenger;
+    toAmino(): MsgUpdateChallenger.Amino;
+    static fromData(data: MsgUpdateChallenger.Data): MsgUpdateChallenger;
+    toData(): MsgUpdateChallenger.Data;
+    static fromProto(data: MsgUpdateChallenger.Proto): MsgUpdateChallenger;
+    toProto(): MsgUpdateChallenger.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateChallenger;
+}
+export declare namespace MsgUpdateChallenger {
+    interface Amino {
+        type: 'ophost/MsgUpdateChallenger';
+        value: {
+            authority: AccAddress;
+            bridge_id: string;
+            challenger: AccAddress;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.ophost.v1.MsgUpdateChallenger';
+        authority: AccAddress;
+        bridge_id: string;
+        challenger: AccAddress;
+    }
+    type Proto = MsgUpdateChallenger_pb;
+}

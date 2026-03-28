@@ -1,0 +1,33 @@
+import { JSONSerializable } from '../../../../../util/json';
+import { AccAddress } from '../../../../bech32';
+import { IbcNftParams } from '../IbcNftParams';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateParams as MsgUpdateParams_pb } from '@initia/initia.proto/ibc/applications/nft_transfer/v1/tx';
+export declare class MsgUpdateIbcNftParams extends JSONSerializable<MsgUpdateIbcNftParams.Amino, MsgUpdateIbcNftParams.Data, MsgUpdateIbcNftParams.Proto> {
+    authority: AccAddress;
+    params: IbcNftParams;
+    constructor(authority: AccAddress, params: IbcNftParams);
+    static fromAmino(data: MsgUpdateIbcNftParams.Amino): MsgUpdateIbcNftParams;
+    toAmino(): MsgUpdateIbcNftParams.Amino;
+    static fromData(data: MsgUpdateIbcNftParams.Data): MsgUpdateIbcNftParams;
+    toData(): MsgUpdateIbcNftParams.Data;
+    static fromProto(data: MsgUpdateIbcNftParams.Proto): MsgUpdateIbcNftParams;
+    toProto(): MsgUpdateIbcNftParams.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateIbcNftParams;
+}
+export declare namespace MsgUpdateIbcNftParams {
+    interface Amino {
+        type: 'nft-transfer/MsgUpdateParams';
+        value: {
+            authority: AccAddress;
+            params: IbcNftParams.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/ibc.applications.nft_transfer.v1.MsgUpdateParams';
+        authority: AccAddress;
+        params: IbcNftParams.Data;
+    }
+    type Proto = MsgUpdateParams_pb;
+}

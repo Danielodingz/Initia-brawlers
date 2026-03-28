@@ -1,0 +1,36 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { MsgUpdateBatchInfo as MsgUpdateBatchInfo_pb } from '@initia/opinit.proto/opinit/ophost/v1/tx';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { BatchInfo } from '../BatchInfo';
+export declare class MsgUpdateBatchInfo extends JSONSerializable<MsgUpdateBatchInfo.Amino, MsgUpdateBatchInfo.Data, MsgUpdateBatchInfo.Proto> {
+    authority: AccAddress;
+    bridge_id: number;
+    new_batch_info: BatchInfo;
+    constructor(authority: AccAddress, bridge_id: number, new_batch_info: BatchInfo);
+    static fromAmino(data: MsgUpdateBatchInfo.Amino): MsgUpdateBatchInfo;
+    toAmino(): MsgUpdateBatchInfo.Amino;
+    static fromData(data: MsgUpdateBatchInfo.Data): MsgUpdateBatchInfo;
+    toData(): MsgUpdateBatchInfo.Data;
+    static fromProto(data: MsgUpdateBatchInfo.Proto): MsgUpdateBatchInfo;
+    toProto(): MsgUpdateBatchInfo.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateBatchInfo;
+}
+export declare namespace MsgUpdateBatchInfo {
+    interface Amino {
+        type: 'ophost/MsgUpdateBatchInfo';
+        value: {
+            authority: AccAddress;
+            bridge_id: string;
+            new_batch_info: BatchInfo.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.ophost.v1.MsgUpdateBatchInfo';
+        authority: AccAddress;
+        bridge_id: string;
+        new_batch_info: BatchInfo.Data;
+    }
+    type Proto = MsgUpdateBatchInfo_pb;
+}

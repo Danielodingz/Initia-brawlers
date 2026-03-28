@@ -1,0 +1,26 @@
+import { JSONSerializable } from '../../util/json';
+import { Coins } from '../Coins';
+import { Params as Params_pb } from '@initia/opinit.proto/opinit/ophost/v1/types';
+export declare class OphostParams extends JSONSerializable<OphostParams.Amino, OphostParams.Data, OphostParams.Proto> {
+    registration_fee: Coins;
+    constructor(registration_fee: Coins.Input);
+    static fromAmino(data: OphostParams.Amino): OphostParams;
+    toAmino(): OphostParams.Amino;
+    static fromData(data: OphostParams.Data): OphostParams;
+    toData(): OphostParams.Data;
+    static fromProto(data: OphostParams.Proto): OphostParams;
+    toProto(): OphostParams.Proto;
+}
+export declare namespace OphostParams {
+    interface Amino {
+        type: 'ophost/Params';
+        value: {
+            registration_fee: Coins.Amino | null;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.ophost.v1.Params';
+        registration_fee: Coins.Data;
+    }
+    type Proto = Params_pb;
+}

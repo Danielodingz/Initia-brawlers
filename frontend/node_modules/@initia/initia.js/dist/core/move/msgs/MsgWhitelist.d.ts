@@ -1,0 +1,35 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgWhitelist as MsgWhitelist_pb } from '@initia/initia.proto/initia/move/v1/tx';
+export declare class MsgWhitelist extends JSONSerializable<MsgWhitelist.Amino, MsgWhitelist.Data, MsgWhitelist.Proto> {
+    authority: AccAddress;
+    metadata_lp: string;
+    reward_weight: string;
+    constructor(authority: AccAddress, metadata_lp: string, reward_weight: string);
+    static fromAmino(data: MsgWhitelist.Amino): MsgWhitelist;
+    toAmino(): MsgWhitelist.Amino;
+    static fromData(data: MsgWhitelist.Data): MsgWhitelist;
+    toData(): MsgWhitelist.Data;
+    static fromProto(data: MsgWhitelist.Proto): MsgWhitelist;
+    toProto(): MsgWhitelist.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgWhitelist;
+}
+export declare namespace MsgWhitelist {
+    interface Amino {
+        type: 'move/MsgWhitelist';
+        value: {
+            authority: AccAddress;
+            metadata_lp: string;
+            reward_weight: string;
+        };
+    }
+    interface Data {
+        '@type': '/initia.move.v1.MsgWhitelist';
+        authority: AccAddress;
+        metadata_lp: string;
+        reward_weight: string;
+    }
+    type Proto = MsgWhitelist_pb;
+}

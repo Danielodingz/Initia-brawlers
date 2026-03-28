@@ -1,0 +1,44 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgExecuteJSON as MsgExecuteJSON_pb } from '@initia/initia.proto/initia/move/v1/tx';
+export declare class MsgExecuteJSON extends JSONSerializable<MsgExecuteJSON.Amino, MsgExecuteJSON.Data, MsgExecuteJSON.Proto> {
+    sender: AccAddress;
+    module_address: AccAddress;
+    module_name: string;
+    function_name: string;
+    type_args: string[];
+    args: string[];
+    constructor(sender: AccAddress, module_address: AccAddress, module_name: string, function_name: string, type_args?: string[], args?: string[]);
+    static fromAmino(data: MsgExecuteJSON.Amino): MsgExecuteJSON;
+    toAmino(): MsgExecuteJSON.Amino;
+    static fromData(data: MsgExecuteJSON.Data): MsgExecuteJSON;
+    toData(): MsgExecuteJSON.Data;
+    static fromProto(data: MsgExecuteJSON.Proto): MsgExecuteJSON;
+    toProto(): MsgExecuteJSON.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgExecuteJSON;
+}
+export declare namespace MsgExecuteJSON {
+    interface Amino {
+        type: 'move/MsgExecuteJSON';
+        value: {
+            sender: AccAddress;
+            module_address: AccAddress;
+            module_name: string;
+            function_name: string;
+            type_args?: string[];
+            args?: string[];
+        };
+    }
+    interface Data {
+        '@type': '/initia.move.v1.MsgExecuteJSON';
+        sender: AccAddress;
+        module_address: AccAddress;
+        module_name: string;
+        function_name: string;
+        type_args: string[];
+        args: string[];
+    }
+    type Proto = MsgExecuteJSON_pb;
+}

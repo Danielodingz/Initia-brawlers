@@ -1,0 +1,32 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgDelist as MsgDelist_pb } from '@initia/initia.proto/initia/move/v1/tx';
+export declare class MsgDelist extends JSONSerializable<MsgDelist.Amino, MsgDelist.Data, MsgDelist.Proto> {
+    authority: AccAddress;
+    metadata_lp: string;
+    constructor(authority: AccAddress, metadata_lp: string);
+    static fromAmino(data: MsgDelist.Amino): MsgDelist;
+    toAmino(): MsgDelist.Amino;
+    static fromData(data: MsgDelist.Data): MsgDelist;
+    toData(): MsgDelist.Data;
+    static fromProto(data: MsgDelist.Proto): MsgDelist;
+    toProto(): MsgDelist.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgDelist;
+}
+export declare namespace MsgDelist {
+    interface Amino {
+        type: 'move/MsgDelist';
+        value: {
+            authority: AccAddress;
+            metadata_lp: string;
+        };
+    }
+    interface Data {
+        '@type': '/initia.move.v1.MsgDelist';
+        authority: AccAddress;
+        metadata_lp: string;
+    }
+    type Proto = MsgDelist_pb;
+}

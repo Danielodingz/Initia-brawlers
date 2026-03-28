@@ -1,0 +1,27 @@
+import { JSONSerializable } from '../../util/json';
+import { QuotePrice as QuotePrice_pb } from '@initia/initia.proto/connect/oracle/v2/genesis';
+export declare class QuotePrice extends JSONSerializable<QuotePrice.Amino, QuotePrice.Data, QuotePrice.Proto> {
+    price: string;
+    block_timestamp: Date;
+    block_height: number;
+    constructor(price: string, block_timestamp: Date, block_height: number);
+    static fromAmino(data: QuotePrice.Amino): QuotePrice;
+    toAmino(): QuotePrice.Amino;
+    static fromData(data: QuotePrice.Data): QuotePrice;
+    toData(): QuotePrice.Data;
+    static fromProto(proto: QuotePrice.Proto): QuotePrice;
+    toProto(): QuotePrice.Proto;
+}
+export declare namespace QuotePrice {
+    interface Amino {
+        price: string;
+        block_timestamp: string;
+        block_height: string;
+    }
+    interface Data {
+        price: string;
+        block_timestamp: string;
+        block_height: string;
+    }
+    type Proto = QuotePrice_pb;
+}

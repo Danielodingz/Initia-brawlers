@@ -1,0 +1,38 @@
+import { JSONSerializable } from '../../../../../../util/json';
+import { Consensus as Consensus_pb, App as App_pb } from '@initia/initia.proto/tendermint/version/types';
+export declare class Consensus extends JSONSerializable<any, Consensus.Data, Consensus.Proto> {
+    block: number;
+    app: number;
+    constructor(block: number, app: number);
+    static fromAmino(_: any): Consensus;
+    toAmino(): any;
+    static fromData(data: Consensus.Data): Consensus;
+    toData(): Consensus.Data;
+    static fromProto(proto: Consensus.Proto): Consensus;
+    toProto(): Consensus.Proto;
+}
+export declare namespace Consensus {
+    interface Data {
+        block: string;
+        app: string;
+    }
+    type Proto = Consensus_pb;
+}
+export declare class App extends JSONSerializable<any, App.Data, App.Proto> {
+    protocol: number;
+    software: string;
+    constructor(protocol: number, software: string);
+    static fromAmino(_: any): App;
+    toAmino(): any;
+    static fromData(data: App.Data): App;
+    toData(): App.Data;
+    static fromProto(proto: App.Proto): App;
+    toProto(): App.Proto;
+}
+export declare namespace App {
+    interface Data {
+        protocol: string;
+        software: string;
+    }
+    type Proto = App_pb;
+}

@@ -1,0 +1,35 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateGroupAdmin as MsgUpdateGroupAdmin_pb } from '@initia/initia.proto/cosmos/group/v1/tx';
+export declare class MsgUpdateGroupAdmin extends JSONSerializable<MsgUpdateGroupAdmin.Amino, MsgUpdateGroupAdmin.Data, MsgUpdateGroupAdmin.Proto> {
+    admin: AccAddress;
+    group_id: number;
+    new_admin: AccAddress;
+    constructor(admin: AccAddress, group_id: number, new_admin: AccAddress);
+    static fromAmino(data: MsgUpdateGroupAdmin.Amino): MsgUpdateGroupAdmin;
+    toAmino(): MsgUpdateGroupAdmin.Amino;
+    static fromData(data: MsgUpdateGroupAdmin.Data): MsgUpdateGroupAdmin;
+    toData(): MsgUpdateGroupAdmin.Data;
+    static fromProto(data: MsgUpdateGroupAdmin.Proto): MsgUpdateGroupAdmin;
+    toProto(): MsgUpdateGroupAdmin.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateGroupAdmin;
+}
+export declare namespace MsgUpdateGroupAdmin {
+    interface Amino {
+        type: 'cosmos-sdk/MsgUpdateGroupAdmin';
+        value: {
+            admin: AccAddress;
+            group_id: string;
+            new_admin: AccAddress;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.group.v1.MsgUpdateGroupAdmin';
+        admin: AccAddress;
+        group_id: string;
+        new_admin: AccAddress;
+    }
+    type Proto = MsgUpdateGroupAdmin_pb;
+}

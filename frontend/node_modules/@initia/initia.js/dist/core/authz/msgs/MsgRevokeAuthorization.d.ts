@@ -1,0 +1,35 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { MsgRevoke as MsgRevoke_pb } from '@initia/initia.proto/cosmos/authz/v1beta1/tx';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+export declare class MsgRevokeAuthorization extends JSONSerializable<MsgRevokeAuthorization.Amino, MsgRevokeAuthorization.Data, MsgRevokeAuthorization.Proto> {
+    granter: AccAddress;
+    grantee: AccAddress;
+    msg_type_url: string;
+    constructor(granter: AccAddress, grantee: AccAddress, msg_type_url: string);
+    static fromAmino(data: MsgRevokeAuthorization.Amino): MsgRevokeAuthorization;
+    toAmino(): MsgRevokeAuthorization.Amino;
+    static fromData(data: MsgRevokeAuthorization.Data): MsgRevokeAuthorization;
+    toData(): MsgRevokeAuthorization.Data;
+    static fromProto(proto: MsgRevokeAuthorization.Proto): MsgRevokeAuthorization;
+    toProto(): MsgRevokeAuthorization.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgRevokeAuthorization;
+}
+export declare namespace MsgRevokeAuthorization {
+    interface Amino {
+        type: 'cosmos-sdk/MsgRevoke';
+        value: {
+            granter: AccAddress;
+            grantee: AccAddress;
+            msg_type_url: string;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.authz.v1beta1.MsgRevoke';
+        granter: AccAddress;
+        grantee: AccAddress;
+        msg_type_url: string;
+    }
+    type Proto = MsgRevoke_pb;
+}

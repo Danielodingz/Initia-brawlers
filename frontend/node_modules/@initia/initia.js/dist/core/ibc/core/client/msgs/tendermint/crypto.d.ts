@@ -1,0 +1,43 @@
+import { JSONSerializable } from '../../../../../../util/json';
+import { Proof as Proof_pb } from '@initia/initia.proto/tendermint/crypto/proof';
+import { PublicKey as PublicKey_pb } from '@initia/initia.proto/tendermint/crypto/keys';
+export declare class Proof extends JSONSerializable<any, Proof.Data, Proof.Proto> {
+    total: number;
+    index: number;
+    leaf_hash: string;
+    aunts: string[];
+    constructor(total: number, index: number, leaf_hash: string, aunts: string[]);
+    static fromAmino(_: any): Proof;
+    toAmino(): any;
+    static fromData(data: Proof.Data): Proof;
+    toData(): Proof.Data;
+    static fromProto(proto: Proof.Proto): Proof;
+    toProto(): Proof.Proto;
+}
+export declare namespace Proof {
+    interface Data {
+        total: string;
+        index: string;
+        leaf_hash: string;
+        aunts: string[];
+    }
+    type Proto = Proof_pb;
+}
+export declare class PublicKey extends JSONSerializable<any, PublicKey.Data, PublicKey.Proto> {
+    ed25519?: string | undefined;
+    secp256k1?: string | undefined;
+    constructor(ed25519?: string | undefined, secp256k1?: string | undefined);
+    static fromAmino(_: any): PublicKey;
+    toAmino(): any;
+    static fromData(data: PublicKey.Data): PublicKey;
+    toData(): PublicKey.Data;
+    static fromProto(proto: PublicKey.Proto): PublicKey;
+    toProto(): PublicKey.Proto;
+}
+export declare namespace PublicKey {
+    interface Data {
+        ed25519?: string;
+        secp256k1?: string;
+    }
+    type Proto = PublicKey_pb;
+}

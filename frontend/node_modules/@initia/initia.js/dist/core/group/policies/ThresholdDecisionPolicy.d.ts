@@ -1,0 +1,32 @@
+import { JSONSerializable } from '../../../util/json';
+import { DecisionPolicyWindows } from './DecisionPolicyWindows';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { ThresholdDecisionPolicy as ThresholdDecisionPolicy_pb } from '@initia/initia.proto/cosmos/group/v1/types';
+export declare class ThresholdDecisionPolicy extends JSONSerializable<ThresholdDecisionPolicy.Amino, ThresholdDecisionPolicy.Data, ThresholdDecisionPolicy.Proto> {
+    threshold: string;
+    windows: DecisionPolicyWindows;
+    constructor(threshold: string, windows: DecisionPolicyWindows);
+    static fromAmino(data: ThresholdDecisionPolicy.Amino): ThresholdDecisionPolicy;
+    toAmino(): ThresholdDecisionPolicy.Amino;
+    static fromData(data: ThresholdDecisionPolicy.Data): ThresholdDecisionPolicy;
+    toData(): ThresholdDecisionPolicy.Data;
+    static fromProto(data: ThresholdDecisionPolicy.Proto): ThresholdDecisionPolicy;
+    toProto(): ThresholdDecisionPolicy.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): ThresholdDecisionPolicy;
+}
+export declare namespace ThresholdDecisionPolicy {
+    interface Amino {
+        type: 'cosmos-sdk/ThresholdDecisionPolicy';
+        value: {
+            threshold: string;
+            windows: DecisionPolicyWindows.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.group.v1.ThresholdDecisionPolicy';
+        threshold: string;
+        windows: DecisionPolicyWindows.Data;
+    }
+    type Proto = ThresholdDecisionPolicy_pb;
+}

@@ -1,0 +1,39 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { WeightedVoteOption } from '../Vote';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgVoteWeighted as MsgVoteWeighted_pb } from '@initia/initia.proto/cosmos/gov/v1/tx';
+export declare class MsgVoteWeighted extends JSONSerializable<MsgVoteWeighted.Amino, MsgVoteWeighted.Data, MsgVoteWeighted.Proto> {
+    proposal_id: number;
+    voter: AccAddress;
+    options: WeightedVoteOption[];
+    metadata: string;
+    constructor(proposal_id: number, voter: AccAddress, options: WeightedVoteOption[], metadata: string);
+    static fromAmino(data: MsgVoteWeighted.Amino): MsgVoteWeighted;
+    toAmino(): MsgVoteWeighted.Amino;
+    static fromData(data: MsgVoteWeighted.Data): MsgVoteWeighted;
+    toData(): MsgVoteWeighted.Data;
+    static fromProto(proto: MsgVoteWeighted.Proto): MsgVoteWeighted;
+    toProto(): MsgVoteWeighted.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgVoteWeighted;
+}
+export declare namespace MsgVoteWeighted {
+    interface Amino {
+        type: 'cosmos-sdk/v1/MsgVoteWeighted';
+        value: {
+            proposal_id: string;
+            voter: AccAddress;
+            options: WeightedVoteOption.Amino[];
+            metadata?: string;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.gov.v1.MsgVoteWeighted';
+        proposal_id: string;
+        voter: AccAddress;
+        options: WeightedVoteOption.Data[];
+        metadata: string;
+    }
+    type Proto = MsgVoteWeighted_pb;
+}

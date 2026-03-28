@@ -1,0 +1,40 @@
+import { JSONSerializable } from '../../../util/json';
+import { Coins } from '../../Coins';
+import { AccAddress, ValAddress } from '../../bech32';
+import { Denom } from '../../Denom';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgDepositValidatorRewardsPool as MsgDepositValidatorRewardsPool_pb } from '@initia/initia.proto/initia/distribution/v1/tx';
+export declare class MsgDepositValidatorRewardsPool extends JSONSerializable<MsgDepositValidatorRewardsPool.Amino, MsgDepositValidatorRewardsPool.Data, MsgDepositValidatorRewardsPool.Proto> {
+    depositor: AccAddress;
+    validator_address: ValAddress;
+    denom: Denom;
+    amount: Coins;
+    constructor(depositor: AccAddress, validator_address: ValAddress, denom: Denom, amount: Coins.Input);
+    static fromAmino(data: MsgDepositValidatorRewardsPool.Amino): MsgDepositValidatorRewardsPool;
+    toAmino(): MsgDepositValidatorRewardsPool.Amino;
+    static fromData(data: MsgDepositValidatorRewardsPool.Data): MsgDepositValidatorRewardsPool;
+    toData(): MsgDepositValidatorRewardsPool.Data;
+    static fromProto(proto: MsgDepositValidatorRewardsPool.Proto): MsgDepositValidatorRewardsPool;
+    toProto(): MsgDepositValidatorRewardsPool.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgDepositValidatorRewardsPool;
+}
+export declare namespace MsgDepositValidatorRewardsPool {
+    interface Amino {
+        type: 'distr/MsgDepositValidatorRewardsPool';
+        value: {
+            depositor: AccAddress;
+            validator_address: ValAddress;
+            denom: Denom;
+            amount: Coins.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/initia.distribution.v1.MsgDepositValidatorRewardsPool';
+        depositor: AccAddress;
+        validator_address: ValAddress;
+        denom: Denom;
+        amount: Coins.Data;
+    }
+    type Proto = MsgDepositValidatorRewardsPool_pb;
+}

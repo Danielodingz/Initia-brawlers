@@ -1,0 +1,41 @@
+import { JSONSerializable } from '../../util/json';
+import { AccAddress } from '../bech32';
+import { DecisionPolicy } from './policies';
+import { GroupPolicyInfo as GroupPolicyInfo_pb } from '@initia/initia.proto/cosmos/group/v1/types';
+export declare class GroupPolicyInfo extends JSONSerializable<GroupPolicyInfo.Amino, GroupPolicyInfo.Data, GroupPolicyInfo.Proto> {
+    address: AccAddress;
+    group_id: number;
+    admin: AccAddress;
+    metadata: string;
+    version: number;
+    decision_policy: DecisionPolicy;
+    created_at: Date;
+    constructor(address: AccAddress, group_id: number, admin: AccAddress, metadata: string, version: number, decision_policy: DecisionPolicy, created_at: Date);
+    static fromAmino(data: GroupPolicyInfo.Amino): GroupPolicyInfo;
+    toAmino(): GroupPolicyInfo.Amino;
+    static fromData(data: GroupPolicyInfo.Data): GroupPolicyInfo;
+    toData(): GroupPolicyInfo.Data;
+    static fromProto(data: GroupPolicyInfo.Proto): GroupPolicyInfo;
+    toProto(): GroupPolicyInfo.Proto;
+}
+export declare namespace GroupPolicyInfo {
+    interface Amino {
+        address: AccAddress;
+        group_id: string;
+        admin: AccAddress;
+        metadata: string;
+        version: string;
+        decision_policy: DecisionPolicy.Amino;
+        created_at: string;
+    }
+    interface Data {
+        address: AccAddress;
+        group_id: string;
+        admin: AccAddress;
+        metadata: string;
+        version: string;
+        decision_policy: DecisionPolicy.Data;
+        created_at: string;
+    }
+    type Proto = GroupPolicyInfo_pb;
+}

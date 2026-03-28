@@ -1,0 +1,25 @@
+import { JSONSerializable } from '../../util/json';
+import { CurrencyPair as CurrencyPair_pb } from '@initia/initia.proto/connect/types/v2/currency_pair';
+export declare class CurrencyPair extends JSONSerializable<CurrencyPair.Amino, CurrencyPair.Data, CurrencyPair.Proto> {
+    Base: string;
+    Quote: string;
+    constructor(Base: string, Quote: string);
+    toString(): string;
+    static fromAmino(data: CurrencyPair.Amino): CurrencyPair;
+    toAmino(): CurrencyPair.Amino;
+    static fromData(data: CurrencyPair.Data): CurrencyPair;
+    toData(): CurrencyPair.Data;
+    static fromProto(proto: CurrencyPair.Proto): CurrencyPair;
+    toProto(): CurrencyPair.Proto;
+}
+export declare namespace CurrencyPair {
+    interface Amino {
+        Base: string;
+        Quote: string;
+    }
+    interface Data {
+        Base: string;
+        Quote: string;
+    }
+    type Proto = CurrencyPair_pb;
+}

@@ -1,0 +1,33 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { OpchildParams } from '../OpchildParams';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUpdateParams as MsgUpdateParams_pb } from '@initia/opinit.proto/opinit/opchild/v1/tx';
+export declare class MsgUpdateOpchildParams extends JSONSerializable<MsgUpdateOpchildParams.Amino, MsgUpdateOpchildParams.Data, MsgUpdateOpchildParams.Proto> {
+    authority: AccAddress;
+    params: OpchildParams;
+    constructor(authority: AccAddress, params: OpchildParams);
+    static fromAmino(data: MsgUpdateOpchildParams.Amino): MsgUpdateOpchildParams;
+    toAmino(): MsgUpdateOpchildParams.Amino;
+    static fromData(data: MsgUpdateOpchildParams.Data): MsgUpdateOpchildParams;
+    toData(): MsgUpdateOpchildParams.Data;
+    static fromProto(data: MsgUpdateOpchildParams.Proto): MsgUpdateOpchildParams;
+    toProto(): MsgUpdateOpchildParams.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUpdateOpchildParams;
+}
+export declare namespace MsgUpdateOpchildParams {
+    interface Amino {
+        type: 'opchild/MsgUpdateParams';
+        value: {
+            authority: AccAddress;
+            params: OpchildParams.Amino;
+        };
+    }
+    interface Data {
+        '@type': '/opinit.opchild.v1.MsgUpdateParams';
+        authority: AccAddress;
+        params: OpchildParams.Data;
+    }
+    type Proto = MsgUpdateParams_pb;
+}

@@ -1,0 +1,38 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgScriptJSON as MsgScriptJSON_pb } from '@initia/initia.proto/initia/move/v1/tx';
+export declare class MsgScriptJSON extends JSONSerializable<MsgScriptJSON.Amino, MsgScriptJSON.Data, MsgScriptJSON.Proto> {
+    sender: AccAddress;
+    code_bytes: string;
+    type_args: string[];
+    args: string[];
+    constructor(sender: AccAddress, code_bytes: string, type_args?: string[], args?: string[]);
+    static fromAmino(data: MsgScriptJSON.Amino): MsgScriptJSON;
+    toAmino(): MsgScriptJSON.Amino;
+    static fromData(data: MsgScriptJSON.Data): MsgScriptJSON;
+    toData(): MsgScriptJSON.Data;
+    static fromProto(data: MsgScriptJSON.Proto): MsgScriptJSON;
+    toProto(): MsgScriptJSON.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgScriptJSON;
+}
+export declare namespace MsgScriptJSON {
+    interface Amino {
+        type: 'move/MsgScriptJSON';
+        value: {
+            sender: AccAddress;
+            code_bytes: string;
+            type_args?: string[];
+            args?: string[];
+        };
+    }
+    interface Data {
+        '@type': '/initia.move.v1.MsgScriptJSON';
+        sender: AccAddress;
+        code_bytes: string;
+        type_args: string[];
+        args: string[];
+    }
+    type Proto = MsgScriptJSON_pb;
+}

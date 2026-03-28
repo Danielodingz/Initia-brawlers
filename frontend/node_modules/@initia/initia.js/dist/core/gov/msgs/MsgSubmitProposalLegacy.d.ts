@@ -1,0 +1,37 @@
+import { Coins } from '../../Coins';
+import { Content } from '../proposals';
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgSubmitProposal as MsgSubmitProposal_pb } from '@initia/initia.proto/cosmos/gov/v1beta1/tx';
+export declare class MsgSubmitProposalLegacy extends JSONSerializable<MsgSubmitProposalLegacy.Amino, MsgSubmitProposalLegacy.Data, MsgSubmitProposalLegacy.Proto> {
+    content: Content | undefined;
+    proposer: AccAddress;
+    initial_deposit: Coins;
+    constructor(content: Content | undefined, initial_deposit: Coins.Input, proposer: AccAddress);
+    static fromAmino(data: MsgSubmitProposalLegacy.Amino): MsgSubmitProposalLegacy;
+    toAmino(): MsgSubmitProposalLegacy.Amino;
+    static fromData(data: MsgSubmitProposalLegacy.Data): MsgSubmitProposalLegacy;
+    toData(): MsgSubmitProposalLegacy.Data;
+    static fromProto(proto: MsgSubmitProposalLegacy.Proto): MsgSubmitProposalLegacy;
+    toProto(): MsgSubmitProposalLegacy.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgSubmitProposalLegacy;
+}
+export declare namespace MsgSubmitProposalLegacy {
+    interface Amino {
+        type: 'cosmos-sdk/MsgSubmitProposal';
+        value: {
+            content: Content.Amino | undefined;
+            initial_deposit: Coins.Amino;
+            proposer: AccAddress;
+        };
+    }
+    interface Data {
+        '@type': '/cosmos.gov.v1beta1.MsgSubmitProposal';
+        content: Content.Data | undefined;
+        initial_deposit: Coins.Data;
+        proposer: AccAddress;
+    }
+    type Proto = MsgSubmitProposal_pb;
+}

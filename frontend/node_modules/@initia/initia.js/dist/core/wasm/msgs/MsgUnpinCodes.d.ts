@@ -1,0 +1,32 @@
+import { JSONSerializable } from '../../../util/json';
+import { AccAddress } from '../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgUnpinCodes as MsgUnpinCodes_pb } from '@initia/initia.proto/cosmwasm/wasm/v1/tx';
+export declare class MsgUnpinCodes extends JSONSerializable<MsgUnpinCodes.Amino, MsgUnpinCodes.Data, MsgUnpinCodes.Proto> {
+    authority: AccAddress;
+    code_ids: number[];
+    constructor(authority: AccAddress, code_ids: number[]);
+    static fromAmino(data: MsgUnpinCodes.Amino): MsgUnpinCodes;
+    toAmino(): MsgUnpinCodes.Amino;
+    static fromData(data: MsgUnpinCodes.Data): MsgUnpinCodes;
+    toData(): MsgUnpinCodes.Data;
+    static fromProto(data: MsgUnpinCodes.Proto): MsgUnpinCodes;
+    toProto(): MsgUnpinCodes.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgUnpinCodes;
+}
+export declare namespace MsgUnpinCodes {
+    interface Amino {
+        type: 'wasm/MsgUnpinCodes';
+        value: {
+            authority: AccAddress;
+            code_ids: string[];
+        };
+    }
+    interface Data {
+        '@type': '/cosmwasm.wasm.v1.MsgUnpinCodes';
+        authority: AccAddress;
+        code_ids: string[];
+    }
+    type Proto = MsgUnpinCodes_pb;
+}

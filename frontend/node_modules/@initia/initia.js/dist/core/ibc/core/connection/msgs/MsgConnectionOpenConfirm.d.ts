@@ -1,0 +1,30 @@
+import { JSONSerializable } from '../../../../../util/json';
+import { AccAddress } from '../../../../bech32';
+import { Any } from '@initia/initia.proto/google/protobuf/any';
+import { MsgConnectionOpenConfirm as MsgConnectionOpenConfirm_pb } from '@initia/initia.proto/ibc/core/connection/v1/tx';
+import { Height } from '../../client/Height';
+export declare class MsgConnectionOpenConfirm extends JSONSerializable<any, MsgConnectionOpenConfirm.Data, MsgConnectionOpenConfirm.Proto> {
+    connection_id: string;
+    proof_ack: string;
+    proof_height: Height | undefined;
+    signer: AccAddress;
+    constructor(connection_id: string, proof_ack: string, proof_height: Height | undefined, signer: AccAddress);
+    static fromAmino(_: any): MsgConnectionOpenConfirm;
+    toAmino(): any;
+    static fromData(data: MsgConnectionOpenConfirm.Data): MsgConnectionOpenConfirm;
+    toData(): MsgConnectionOpenConfirm.Data;
+    static fromProto(proto: MsgConnectionOpenConfirm.Proto): MsgConnectionOpenConfirm;
+    toProto(): MsgConnectionOpenConfirm.Proto;
+    packAny(): Any;
+    static unpackAny(msgAny: Any): MsgConnectionOpenConfirm;
+}
+export declare namespace MsgConnectionOpenConfirm {
+    interface Data {
+        '@type': '/ibc.core.connection.v1.MsgConnectionOpenConfirm';
+        connection_id: string;
+        proof_ack: string;
+        proof_height?: Height.Data;
+        signer: AccAddress;
+    }
+    type Proto = MsgConnectionOpenConfirm_pb;
+}
