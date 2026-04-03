@@ -9,8 +9,6 @@ import { MOVE_DESCRIPTIONS, MOCK_MODE } from '../lib/constants'
 import { resolveTurn, botChooseMove } from '../lib/mockBattle'
 import { Swords, Info, Coins, Loader2, Timer } from 'lucide-react'
 
-const MAX_TURNS = 20 // Move limit — battle ends by decision when this is reached
-
 interface BattleArenaProps {
   battleId: number;
   playerCreatureId?: number;
@@ -35,6 +33,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
   const [isAnimating, setIsAnimating] = useState(false)
   const [currentLog, setCurrentLog] = useState<string | null>(null)
   const [selectedMove, setSelectedMove] = useState<MoveType | null>(null)
+  const [hoveredMove, setHoveredMove] = useState<MoveType | null>(null)
   const [winReason, setWinReason] = useState<'ko' | 'decision' | null>(null)
   
   // FORCE MOCK LOGIC for PVE to keep it instant and gas-free
@@ -42,6 +41,9 @@ const BattleArena: React.FC<BattleArenaProps> = ({
   const useMock = MOCK_MODE || isPve;
   const battle = useMock ? mockBattle : chainBattle
   const isLoading = useMock ? !mockBattle : chainLoading
+
+  // Move limit — battle ends by decision when this is reached
+  const MAX_TURNS = isPve ? 30 + (botLevel - 1) * 5 : 30;
 
   // Initialize Mock Battle
   useEffect(() => {
@@ -54,10 +56,14 @@ const BattleArena: React.FC<BattleArenaProps> = ({
       }
 
       // SCALE BOT STATS based on botLevel
-      const botHp = 100 + (botLevel - 1) * 20
-      const botAtk = 15 + (botLevel - 1) * 5
-      const botDef = 12 + (botLevel - 1) * 5
-      const botSpd = 14 + (botLevel - 1) * 5
+      // Level 1 is heavily nerfed and acts as an "Easy" tutorial. Level 2 is "Normal".
+      const isEasy = botLevel === 1
+      const scaleMultiplier = Math.max(0, botLevel - 2)
+      
+      const botHp = isEasy ? 60 : 100 + scaleMultiplier * 25
+      const botAtk = isEasy ? 8 : 15 + scaleMultiplier * 5
+      const botDef = isEasy ? 5 : 12 + scaleMultiplier * 4
+      const botSpd = isEasy ? 8 : 14 + scaleMultiplier * 4
       
       // ENSURE BOT PICKS A DIFFERENT CHARACTER
       const allElements = ['Fire', 'Water', 'Earth', 'Wind', 'Shadow']
@@ -115,8 +121,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({
         mockBattle.p1Buff, mockBattle.p2Buff
       )
 
-      // 3. Simulate "chain delay"
-      await new Promise(r => setTimeout(r, 800))
+      // 3. Simulate "chain delay" and wait for animations
+      await new Promise(r => setTimeout(r, 1800))
 
       // 4. Update state
       setMockBattle(prev => {
@@ -215,16 +221,20 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           const isCritical = turnsLeft <= 5
           const barColor = isCritical ? 'bg-red-500' : turnsLeft <= 10 ? 'bg-yellow-500' : 'bg-orange-500'
           return (
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-1.5 mt-1">
               <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${ isCritical ? 'text-red-400 animate-pulse' : 'text-white/40'}`}>
-                <Timer size={10} />
+                <span className="text-[10px]">▶</span>
                 <span>{turnsLeft} Moves Left</span>
               </div>
-              <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-40 h-3 bg-[#0a0a14] border-2 border-[#1a1a2e] relative overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.5)]">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                  className={`h-full transition-all duration-500 ${barColor}`}
                   style={{ width: `${pct}%` }}
                 />
+                {/* Chunk dividers */}
+                {[20, 40, 60, 80].map(p => (
+                  <div key={p} className="absolute top-0 bottom-0 w-px bg-black/40" style={{ left: `${p}%` }} />
+                ))}
               </div>
             </div>
           )
@@ -285,6 +295,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({
              playerCreature={battle.creature1}
              botCreature={battle.creature2}
              isAnimating={isAnimating}
+             activeMove={selectedMove}
+             hoveredMove={hoveredMove}
            />
         </div>
 
@@ -338,6 +350,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({
                   key={type}
                   disabled={isDisabled}
                   onClick={() => handleMove(type)}
+                  onMouseEnter={() => setHoveredMove(type)}
+                  onMouseLeave={() => setHoveredMove(null)}
                   style={isSelected ? {
                     borderBottom: `4px solid ${accent.border}`,
                     boxShadow: `inset 0 0 20px ${accent.glow}, 0 0 16px ${accent.glow}`,
