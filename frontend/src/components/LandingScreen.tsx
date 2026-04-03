@@ -39,7 +39,7 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onEnter, onPlayGuest }) =
         <div className="flex items-center justify-center gap-4 mb-4 opacity-60">
           <img src="/swords.png" alt="Combat" className="w-5 h-5 object-contain" style={{ imageRendering: 'pixelated' }} />
           <div className="h-px w-12 bg-white/20" />
-          <span className="text-[10px] tracking-[0.4em] font-black uppercase text-white">Initiate Hackathon</span>
+          <span className="text-[10px] tracking-[0.4em] font-black uppercase text-white">Let the Battle begin</span>
           <div className="h-px w-12 bg-white/20" />
           <img src="/swords.png" alt="Combat" className="w-5 h-5 object-contain scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
         </div>

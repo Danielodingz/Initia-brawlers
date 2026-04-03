@@ -39,7 +39,7 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({ onClose, 
       />
 
       {/* Modal panel */}
-      <div className="relative w-full max-w-md bg-[#0a0a14] border-2 overflow-hidden shadow-[8px_8px_0px_rgba(0,0,0,0.9)]"
+      <div className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-[#0a0a14] border-2 shadow-[8px_8px_0px_rgba(0,0,0,0.9)]"
         style={{ borderColor: '#eab30840' }}
       >
         {/* Pixel corner accents */}

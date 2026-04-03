@@ -61,7 +61,7 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onVie
       />
 
       {/* ── Header ─────────────────────────────────── */}
-      <header className="relative z-10 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-6 py-0 flex items-stretch justify-between">
+      <header className="relative z-10 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-4 sm:px-6 py-3 sm:py-0 flex flex-col sm:flex-row items-start sm:items-stretch justify-between gap-4 sm:gap-0">
         {/* Back + title */}
         <div className="flex items-stretch gap-0">
           <button

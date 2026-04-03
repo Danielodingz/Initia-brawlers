@@ -107,7 +107,7 @@ const MintScreen: React.FC<MintScreenProps> = ({ onSuccess }) => {
                 <span className="w-5 h-5 border-2 border-[#1a1a2e] bg-[#0c0c18] flex items-center justify-center text-orange-500">1</span>
                 Choose Element
               </h3>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
                 {ELEMENTS.map(el => {
                   const isSel = element === el;
                   return (

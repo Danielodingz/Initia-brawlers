@@ -199,19 +199,24 @@ const BattleArena: React.FC<BattleArenaProps> = ({
         style={{ opacity: 0.25 }}
       />
       {/* HUD Header */}
-      <div className="p-4 bg-panel/80 border-b border-white/5 flex items-center justify-between backdrop-blur-md z-30">
-        <div className="flex items-center gap-4">
-          <div className="p-2 bg-orange-500/10 rounded-lg flex items-center justify-center">
-            <img src="/logo1.png" alt="Logo" className="w-6 h-6 object-contain" />
-          </div>
-          <div>
-            <div className="text-[10px] font-black text-white/40 uppercase tracking-tighter">
-              {battle.isPve ? `Level ${battle.botDifficulty} Bot` : `Battle #${battleId}`}
+      <div className="p-3 sm:p-4 bg-panel/80 border-b border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 backdrop-blur-md z-30">
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg flex items-center justify-center">
+              <img src="/logo1.png" alt="Logo" className="w-5 sm:w-6 h-5 sm:h-6 object-contain" />
             </div>
-            <div className="font-fantasy font-bold uppercase tracking-widest text-sm">
-                {isPve ? 'Training Arena' : (MOCK_MODE ? 'Mock Training Session' : 'On-Chain Arena')}
+            <div>
+              <div className="text-[9px] sm:text-[10px] font-black text-white/40 uppercase tracking-tighter">
+                {battle.isPve ? `Level ${battle.botDifficulty} Bot` : `Battle #${battleId}`}
+              </div>
+              <div className="font-fantasy font-bold uppercase tracking-widest text-xs sm:text-sm">
+                  {isPve ? 'Training Arena' : (MOCK_MODE ? 'Mock Training Session' : 'On-Chain Arena')}
+              </div>
             </div>
           </div>
+          <button onClick={onFinish} className="sm:hidden px-3 py-1.5 bg-white/5 border border-white/10 text-white/50 text-[9px] font-black tracking-widest uppercase transition-colors hover:text-red-400">
+            SURRENDER
+          </button>
         </div>
 
         {/* Move Limit Countdown */}
@@ -221,12 +226,12 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           const isCritical = turnsLeft <= 5
           const barColor = isCritical ? 'bg-red-500' : turnsLeft <= 10 ? 'bg-yellow-500' : 'bg-orange-500'
           return (
-            <div className="flex flex-col items-center gap-1.5 mt-1">
+            <div className="flex flex-col items-center gap-1.5">
               <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${ isCritical ? 'text-red-400 animate-pulse' : 'text-white/40'}`}>
                 <span className="text-[10px]">▶</span>
                 <span>{turnsLeft} Moves Left</span>
               </div>
-              <div className="w-40 h-3 bg-[#0a0a14] border-2 border-[#1a1a2e] relative overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+              <div className="w-full sm:w-40 h-2 sm:h-3 bg-[#0a0a14] border-2 border-[#1a1a2e] relative overflow-hidden shadow-[0_0_10px_rgba(0,0,0,0.5)]">
                 <div
                   className={`h-full transition-all duration-500 ${barColor}`}
                   style={{ width: `${pct}%` }}
@@ -251,9 +256,28 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           </div>
         )}
 
-        <button onClick={onFinish} className="px-4 py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-[10px] font-black tracking-widest transition-all uppercase border border-white/5">
+        <button onClick={onFinish} className="hidden sm:block px-4 py-2 bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-[10px] font-black tracking-widest transition-all uppercase border border-white/5">
           SURRENDER
         </button>
+      </div>
+
+      {/* Mobile Mini HUD - Only visible on small screens */}
+      <div className="md:hidden flex items-center justify-between p-3 bg-[#0a0a14] border-b-2 border-[#1a1a2e] z-20">
+         {/* Player HP */}
+         <div className="flex-1 flex flex-col gap-1 w-full max-w-[140px]">
+            <div className="text-[9px] font-black uppercase text-green-400 truncate">{battle.creature1.name} <span className="text-white/40">LV.{battle.creature1.level}</span></div>
+            <div className="h-2 bg-[#1a1a2e] border border-white/10 w-full relative">
+               <div className="h-full bg-green-500 transition-all" style={{ width: `${(battle.creature1Hp / battle.creature1.maxHp) * 100}%` }} />
+            </div>
+         </div>
+         <div className="px-3 text-[10px] font-black text-white/30 italic">VS</div>
+         {/* Bot HP */}
+         <div className="flex-1 flex flex-col gap-1 items-end w-full max-w-[140px]">
+            <div className="text-[9px] font-black uppercase text-red-400 truncate"><span className="text-white/40">LV.{battle.creature2.level}</span> {battle.creature2.name}</div>
+            <div className="h-2 bg-[#1a1a2e] border border-white/10 w-full relative">
+               <div className="h-full bg-red-500 transition-all" style={{ width: `${(battle.creature2Hp / battle.creature2.maxHp) * 100}%` }} />
+            </div>
+         </div>
       </div>
 
 
@@ -279,7 +303,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
 
       <div className="flex-1 relative flex flex-col pt-12 z-10">
         {/* Opponent Side */}
-        <div className="absolute top-4 right-8 z-10">
+        <div className="absolute top-4 right-8 z-10 hidden md:block lg:scale-100 origin-top-right">
            <CreatureCard 
              creature={battle.creature2} 
              size="small" 
@@ -290,7 +314,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-2 sm:p-4">
            <BattleCanvas 
              playerCreature={battle.creature1}
              botCreature={battle.creature2}
@@ -301,7 +325,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
         </div>
 
         {/* Player Side */}
-        <div className="absolute bottom-52 left-8 z-10">
+        <div className="absolute bottom-52 left-8 z-10 hidden md:block lg:scale-100 origin-bottom-left">
            <CreatureCard 
              creature={battle.creature1} 
              size="small" 
@@ -329,7 +353,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           </div>
 
           {/* Move buttons grid */}
-          <div className="grid grid-cols-4 gap-0 border-b-2 border-[#1a1a2e]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b-2 border-[#1a1a2e]">
             {(['Attack', 'HeavyAttack', 'Defend', 'Special'] as MoveType[]).map((type, idx) => {
               const isWaitingForSync = !isPve && battle.p1MoveSubmitted
               const isDisabled = battle.state !== 'active' || isAnimating || isWaitingForSync
@@ -361,8 +385,8 @@ const BattleArena: React.FC<BattleArenaProps> = ({
                     boxShadow: 'inset 0 0 12px rgba(22,163,74,0.3)',
                   } : {}}
                   className={`
-                    relative flex flex-col items-center justify-center gap-2 py-5 px-2
-                    border-r-2 border-[#1a1a2e] last:border-r-0
+                    relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-4 sm:py-5 px-2
+                    border-r-2 border-b-2 md:border-b-0 border-[#1a1a2e] md:last:border-r-0
                     transition-all duration-100 select-none
                     ${isSelected
                       ? 'scale-[0.97]'
@@ -417,7 +441,7 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           </div>
 
           {/* Footer: turn info */}
-          <div className="flex items-center justify-between px-6 py-2 text-[9px] font-black uppercase tracking-widest text-white/20">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-3 gap-2 sm:gap-0 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/20">
             <span>Turn {battle.turn}</span>
             <span>{Math.max(0, MAX_TURNS - (battle.turn - 1))} moves remaining</span>
             <span>{isPve ? `Bot LV.${botLevel}` : 'PVP'}</span>
