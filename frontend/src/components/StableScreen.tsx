@@ -1,139 +1,283 @@
 import React, { useState } from 'react'
 import CreatureCard from './CreatureCard'
 import WalletConnect from './WalletConnect'
+import ChallengeModal from './ChallengeModal'
+import ChallengeNotifications from './ChallengeNotifications'
 import { useCreature } from '../hooks/useCreature'
-import { Plus, Swords, Trophy, BarChart3, ChevronRight } from 'lucide-react'
+import { useBattle } from '../hooks/useBattle'
+import { Plus, Trophy, BarChart3, Zap, ChevronRight } from 'lucide-react'
 import { Creature } from '../lib/types'
+import { getCreatureImage } from '../lib/assets'
+import { ELEMENT_COLORS } from '../lib/constants'
 
 interface StableScreenProps {
-  onStartBattle: (creatureId: number) => void;
+  onStartBattle: (battleId: number, playerCreatureId?: number) => void;
   onMint: () => void;
   onViewTournament: () => void;
   onViewLeaderboard: () => void;
 }
 
-const StableScreen: React.FC<StableScreenProps> = ({ 
-  onStartBattle, 
-  onMint, 
-  onViewTournament, 
-  onViewLeaderboard 
+const StableScreen: React.FC<StableScreenProps> = ({
+  onStartBattle,
+  onMint,
+  onViewTournament,
+  onViewLeaderboard
 }) => {
-  const { creatures, isLoading } = useCreature()
+  const { creatures, releaseCreature } = useCreature()
+  const { acceptChallenge } = useBattle(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [showChallengeModal, setShowChallengeModal] = useState(false)
+  const [isAcceptingChallenge, setIsAcceptingChallenge] = useState(false)
+
+  const handleRelease = async (id: number) => {
+    if (window.confirm('Release this brawler? This cannot be undone.')) {
+      try {
+        await releaseCreature(id)
+        if (selectedId === id) setSelectedId(null)
+      } catch (err: any) {
+        alert(`Failed to release: ${err?.message || 'Unknown error'}`)
+      }
+    }
+  }
+
+  const handleAcceptChallenge = async (battleId: number) => {
+    if (!selectedId) { alert('Select a brawler first!'); return }
+    const creature = creatures?.find(c => c.id === selectedId)
+    if (!creature) return
+    setIsAcceptingChallenge(true)
+    try {
+      await acceptChallenge(battleId, creature.id, creature.maxHp)
+      onStartBattle(battleId, creature.id)
+    } catch (err: any) {
+      alert(`Accept failed: ${err?.message}`)
+    } finally {
+      setIsAcceptingChallenge(false)
+    }
+  }
+
+  const handleStartPve = (creature: Creature) => {
+    onStartBattle(Math.floor(Math.random() * 10000), creature.id)
+  }
 
   const selectedCreature = creatures?.find(c => c.id === selectedId)
 
   return (
-    <div className="min-h-screen bg-dark text-white flex flex-col">
-      {/* Top Bar */}
-      <header className="border-b border-white/5 bg-panel/50 backdrop-blur-md px-8 py-4 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-8">
-          <h2 className="text-xl font-fantasy font-black tracking-tighter text-orange-500">INITIA BRAWLERS</h2>
-          <nav className="hidden md:flex items-center gap-6 text-xs font-black uppercase tracking-widest text-white/40">
-            <button onClick={onViewTournament} className="hover:text-white transition-colors flex items-center gap-2">
-              <Trophy size={14} /> Tournament
-            </button>
-            <button onClick={onViewLeaderboard} className="hover:text-white transition-colors flex items-center gap-2">
-              <BarChart3 size={14} /> Leaderboard
-            </button>
-          </nav>
+    <div className="min-h-screen bg-[#07070f] text-white flex flex-col relative overflow-hidden">
+      <ChallengeNotifications onAccept={handleAcceptChallenge} />
+
+      {/* Pixel-style background grid */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
+      {/* Background scene image */}
+      <div
+        className="absolute inset-0 z-0 bg-[url('/game-background2.jpg')] bg-cover bg-center pointer-events-none"
+        style={{ opacity: 0.12 }}
+      />
+
+      {/* ── PIXEL HEADER ────────────────────────────────── */}
+      <header className="relative z-30 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-6 py-0 flex items-stretch justify-between">
+        {/* Logo */}
+        <div className="flex items-center gap-6 border-r-2 border-[#1a1a2e] pr-6">
+          <img
+            src="/logo1.png"
+            alt="Initia Brawlers"
+            className="h-8 w-auto drop-shadow-[0_0_10px_rgba(234,88,12,0.3)]"
+          />
         </div>
-        <WalletConnect />
+        {/* Nav */}
+        <nav className="hidden md:flex items-stretch gap-0">
+          {[
+            { icon: <Trophy size={13} />, label: 'Tournament', action: onViewTournament },
+            { icon: <BarChart3 size={13} />, label: 'Leaderboard', action: onViewLeaderboard },
+          ].map(({ icon, label, action }) => (
+            <button
+              key={label}
+              onClick={action}
+              className="flex items-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white/30
+                hover:text-white hover:bg-white/[0.04] border-r-2 border-[#1a1a2e] transition-colors"
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </nav>
+        {/* Wallet */}
+        <div className="flex items-center pl-4 ml-auto">
+          <WalletConnect />
+        </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Stable Grid */}
-        <div className="lg:col-span-8">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-fantasy font-bold">Your Stable</h3>
-            <span className="text-xs font-black text-white/30 uppercase tracking-widest">
-              {creatures?.length || 0} / 6 Creatures
+      {/* ── MAIN LAYOUT ─────────────────────────────────── */}
+      <main className="flex-1 relative z-10 flex flex-col lg:flex-row">
+
+        {/* LEFT: Stable Grid */}
+        <div className="flex-1 border-r-2 border-[#1a1a2e] flex flex-col">
+          {/* Section header bar */}
+          <div className="flex items-center justify-between px-6 py-3 border-b-2 border-[#1a1a2e] bg-[#0a0a14]">
+            <div className="flex items-center gap-3">
+              <span className="w-1.5 h-5 bg-orange-500" />
+              <h2 className="text-sm font-black uppercase tracking-widest">Your Stable</h2>
+            </div>
+            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+              {creatures?.length || 0} / 6
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Cards grid */}
+          <div className="flex-1 p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 content-start">
             {creatures?.map(creature => (
               <CreatureCard
                 key={creature.id}
                 creature={creature}
                 selected={selectedId === creature.id}
                 onClick={() => setSelectedId(creature.id)}
+                onRelease={() => handleRelease(creature.id)}
               />
             ))}
-            
+
+            {/* Add new slot */}
             {(creatures?.length || 0) < 6 && (
-              <button 
+              <button
                 onClick={onMint}
-                className="h-72 border-2 border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/5 hover:border-white/10 transition-all text-white/20 hover:text-white/40 group"
+                className="h-[312px] w-[200px] border-2 border-dashed border-white/8 bg-[#0a0a14]/60
+                  flex flex-col items-center justify-center gap-3 transition-all
+                  text-white/15 hover:text-white/40 hover:border-white/20 hover:bg-white/[0.02]
+                  group"
               >
-                <div className="p-4 bg-white/5 rounded-full group-hover:scale-110 transition-transform">
-                  <Plus size={32} />
+                {/* Pixel corner dots */}
+                <span className="absolute top-2 left-2 w-1 h-1 bg-white/10 group-hover:bg-white/30" />
+                <span className="absolute top-2 right-2 w-1 h-1 bg-white/10 group-hover:bg-white/30" />
+                <span className="absolute bottom-2 left-2 w-1 h-1 bg-white/10 group-hover:bg-white/30" />
+                <span className="absolute bottom-2 right-2 w-1 h-1 bg-white/10 group-hover:bg-white/30" />
+                <div className="w-10 h-10 border-2 border-current flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Plus size={20} />
                 </div>
-                <span className="font-bold uppercase text-xs tracking-widest">Summon New</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em]">Summon New</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Right: Actions Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="fantasy-card p-6 bg-orange-500/5 border-orange-500/20 sticky top-24">
-            <h3 className="text-xs font-black uppercase tracking-widest text-orange-500/60 mb-6">Battle Operations</h3>
-            
-            <div className="space-y-6">
-              {selectedCreature ? (
-                <div className="animate-in fade-in slide-in-from-bottom-4">
-                  <div className="flex items-center gap-4 mb-6 p-4 bg-white/5 rounded-xl">
-                    <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center text-2xl">
-                      {selectedCreature.element === 'Fire' ? '🔥' : '💧'}
-                    </div>
-                    <div>
-                      <div className="font-fantasy font-bold">{selectedCreature.name}</div>
-                      <div className="text-[10px] uppercase font-black opacity-40">Ready for combat</div>
-                    </div>
-                  </div>
+        {/* RIGHT: Actions panel */}
+        <div className="w-full lg:w-[320px] flex flex-col bg-[#0a0a14]">
 
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => onStartBattle(selectedCreature.id)}
-                      className="w-full py-4 bg-orange-600 rounded-xl font-black text-lg flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(234,88,12,0.2)] hover:bg-orange-500 transition-all active:scale-95"
-                    >
-                      <Swords size={20} />
-                      <span>TRAIN VS BOT</span>
-                    </button>
-                    
-                    <button className="w-full py-4 bg-white/5 border border-white/10 rounded-xl font-black text-lg flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
-                      <span>CHALLENGE PLAYER</span>
-                      <ChevronRight size={18} className="opacity-40" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-2xl">
-                  <p className="text-sm font-bold text-white/20 uppercase tracking-widest px-8">
-                    Select a creature from your stable to begin
-                  </p>
-                </div>
-              )}
-            </div>
+          {/* Panel header */}
+          <div className="flex items-center gap-3 px-5 py-3 border-b-2 border-[#1a1a2e]">
+            <span className="w-1.5 h-5 bg-orange-500/60" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-orange-500/70">
+              Battle Operations
+            </span>
+          </div>
 
-            <div className="mt-12 pt-12 border-t border-white/5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Upcoming Tournament</span>
-                  <span className="text-[10px] font-black px-2 py-0.5 bg-yellow-500/10 text-yellow-500 rounded border border-yellow-500/20 uppercase">Open</span>
-                </div>
-                <div className="text-xl font-fantasy font-bold mb-1">Week 3 Arena</div>
-                <div className="text-xs text-white/40 mb-6">Prize Pool: 16.00 INIT</div>
-                <button 
-                  onClick={onViewTournament}
-                  className="w-full py-3 bg-yellow-600/10 border border-yellow-600/30 text-yellow-600 rounded-lg font-black text-sm hover:bg-yellow-600/20 transition-all"
+          {/* Selected brawler or prompt */}
+          <div className="flex-1 p-5 flex flex-col gap-4">
+            {selectedCreature ? (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-200 flex flex-col gap-3">
+                {/* Selected brawler mini card */}
+                <div
+                  className="flex items-center gap-3 p-3 border-2 bg-[#0c0c18]"
+                  style={{ borderColor: ELEMENT_COLORS[selectedCreature.element] + '44' }}
                 >
-                  VIEW BRACKET
+                  <img
+                    src={getCreatureImage(selectedCreature.element)}
+                    className="w-12 h-12 object-contain"
+                    style={{ imageRendering: 'pixelated' }}
+                    alt=""
+                  />
+                  <div>
+                    <div className="font-fantasy font-bold text-sm">{selectedCreature.name}</div>
+                    <div className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-0.5">
+                      ▶ Ready for combat
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <button
+                  onClick={() => handleStartPve(selectedCreature)}
+                  className="w-full py-4 bg-orange-600 border-b-4 border-orange-800 font-black text-sm uppercase
+                    tracking-widest flex items-center justify-center gap-2 transition-all
+                    hover:brightness-110 active:border-b-0 active:translate-y-1"
+                >
+                  <Zap size={16} fill="currentColor" />
+                  Train vs Bot
                 </button>
+
+                <button
+                  onClick={() => setShowChallengeModal(true)}
+                  className="w-full py-4 bg-[#0c0c18] border-2 border-white/10 border-b-4 border-b-white/5 font-black text-sm uppercase
+                    tracking-widest flex items-center justify-center gap-2 transition-all text-white/60
+                    hover:border-white/20 hover:text-white active:border-b-0 active:translate-y-1"
+                >
+                  Challenge Player
+                  <ChevronRight size={14} className="opacity-40" />
+                </button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-white/8 p-8 flex flex-col items-center justify-center gap-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20 text-center leading-relaxed">
+                  ▶ Select a brawler from your stable to begin
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Tournament section */}
+          <div className="border-t-2 border-[#1a1a2e]">
+            <div className="flex items-center justify-between px-5 py-3 border-b-2 border-[#1a1a2e] bg-[#0c0c18]">
+              <span className="text-[9px] font-black uppercase tracking-widest text-white/30">Upcoming Tournament</span>
+              <span className="text-[8px] font-black px-2 py-0.5 bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 uppercase tracking-wider">
+                Open
+              </span>
+            </div>
+            <div className="p-5 flex flex-col gap-3">
+              <div>
+                <div className="text-base font-fantasy font-bold">Week 3 Arena</div>
+                <div className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-0.5">
+                  Prize Pool: 16.00 INIT
+                </div>
+              </div>
+              <button
+                onClick={onViewTournament}
+                className="w-full py-3 bg-yellow-600/10 border-2 border-yellow-600/30 border-b-4 border-b-yellow-800/30
+                  text-yellow-500 font-black text-xs uppercase tracking-widest transition-all
+                  hover:bg-yellow-600/20 active:border-b-2 active:translate-y-0.5"
+              >
+                View Bracket
+              </button>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      {showChallengeModal && selectedCreature && (
+        <ChallengeModal
+          creatureId={selectedCreature.id}
+          onClose={() => setShowChallengeModal(false)}
+          onChallengeStarted={(battleId) => {
+            setShowChallengeModal(false)
+            onStartBattle(battleId, selectedCreature.id)
+          }}
+        />
+      )}
+
+      {isAcceptingChallenge && (
+        <div className="fixed inset-0 z-[100] bg-[#07070f]/90 flex items-center justify-center flex-col gap-4">
+          <div className="w-8 h-8 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+          <div className="text-[9px] font-black uppercase tracking-[0.3em] text-orange-500 animate-pulse">
+            ▶ Initializing PvP Duel...
+          </div>
+        </div>
+      )}
     </div>
   )
 }

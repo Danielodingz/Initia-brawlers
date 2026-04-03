@@ -3,8 +3,8 @@ name = "initia_brawlers"
 version = "0.0.1"
 
 [dependencies]
-InitiaStdlib = { git = "https://github.com/initia-labs/movevm.git", subdir = "precompile/modules/initia_stdlib", rev = "main" }
+InitiaStdlib = { local = "/Users/macbookpro/go/pkg/mod/github.com/initia-labs/movevm@v1.2.0/precompile/modules/initia_stdlib" }
 
 [addresses]
-initia_brawlers = "_"
+initia_brawlers = "0x445456B1060813AC6B9BF90A03A35AAC591CE131"
 std = "0x1"

@@ -1,17 +1,18 @@
 import React from 'react'
 import { Creature } from '../lib/types'
 import { ELEMENT_COLORS, RARITY_COLORS } from '../lib/constants'
-import { Sword, Shield, Zap, Sparkles } from 'lucide-react'
+import { getCreatureImage } from '../lib/assets'
+import { Sword, Shield, Zap, Sparkles, Trash2 } from 'lucide-react'
 
 interface CreatureCardProps {
   creature: Creature;
   size?: 'small' | 'medium' | 'large';
   selected?: boolean;
   showStats?: boolean;
-  showActions?: boolean;
   isEnemy?: boolean;
   currentHp?: number;
   onClick?: () => void;
+  onRelease?: (e: React.MouseEvent) => void;
 }
 
 const CreatureCard: React.FC<CreatureCardProps> = ({
@@ -21,110 +22,171 @@ const CreatureCard: React.FC<CreatureCardProps> = ({
   showStats = true,
   isEnemy = false,
   currentHp,
-  onClick
+  onClick,
+  onRelease
 }) => {
-  const hp = currentHp !== undefined ? currentHp : creature.hp;
-  const hpPercent = (hp / creature.maxHp) * 100;
-  
+  const hp = currentHp !== undefined ? currentHp : creature.hp
+  const hpPercent = (hp / creature.maxHp) * 100
+
   const getHpColor = () => {
-    if (hpPercent > 60) return 'bg-green-500';
-    if (hpPercent > 30) return 'bg-yellow-500';
-    return 'bg-red-500 animate-pulse';
-  };
+    if (hpPercent > 60) return 'bg-green-400'
+    if (hpPercent > 30) return 'bg-yellow-400'
+    return 'bg-red-500 animate-pulse'
+  }
 
-  const ELEMENT_ICONS: Record<string, React.ReactNode> = {
-    Fire: <div className="w-12 h-12 rounded-full bg-orange-500 blur-sm opacity-50 absolute" />,
-    Water: <div className="w-12 h-12 rounded-full bg-blue-500 blur-sm opacity-50 absolute" />,
-    Earth: <div className="w-12 h-12 rounded-full bg-green-500 blur-sm opacity-50 absolute" />,
-    Wind: <div className="w-12 h-12 rounded-full bg-purple-500 blur-sm opacity-50 absolute" />,
-    Shadow: <div className="w-12 h-12 rounded-full bg-gray-500 blur-sm opacity-50 absolute" />,
-  };
+  const elementColor = ELEMENT_COLORS[creature.element]
 
-  const cardClasses = `
-    relative fantasy-card cursor-pointer group
-    ${size === 'small' ? 'w-40 h-56' : size === 'large' ? 'w-64 h-84' : 'w-52 h-72'}
-    ${selected ? '-translate-y-2 border-orange-500/50 shadow-[0_10px_30px_rgba(234,88,12,0.2)]' : 'hover:-translate-y-1'}
-    ${isEnemy ? 'border-red-500/30' : ''}
-  `;
+  const sizeConfigs = {
+    small:  { container: 'w-[160px] h-[248px]', sprite: 'h-[96px]',  image: 'w-20 h-20', title: 'text-sm',  padding: 'p-2', statsVisible: false },
+    medium: { container: 'w-[200px] h-[312px]', sprite: 'h-[120px]', image: 'w-24 h-24', title: 'text-base', padding: 'p-3', statsVisible: true  },
+    large:  { container: 'w-[248px] h-[376px]', sprite: 'h-[152px]', image: 'w-32 h-32', title: 'text-lg',  padding: 'p-4', statsVisible: true  },
+  }
+  const cfg = sizeConfigs[size]
 
   return (
-    <div 
-      className={cardClasses}
-      style={{ borderColor: selected ? ELEMENT_COLORS[creature.element] : 'rgba(255,255,255,0.1)' }}
+    <div
       onClick={onClick}
+      className={`
+        relative flex flex-col cursor-pointer select-none overflow-hidden
+        bg-[#0c0c18] border-2 transition-all duration-150
+        ${cfg.container}
+        ${selected
+          ? '-translate-y-1'
+          : 'hover:-translate-y-0.5 hover:brightness-110'}
+      `}
+      style={{
+        borderColor: selected ? elementColor : 'rgba(255,255,255,0.08)',
+        boxShadow: selected
+          ? `0 0 0 1px ${elementColor}44, inset 0 0 30px ${elementColor}18, 0 8px 32px ${elementColor}22`
+          : 'none',
+      }}
     >
-      {/* Rarity Shimmer */}
-      <div 
-        className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none"
-        style={{ background: `linear-gradient(45deg, transparent, ${RARITY_COLORS[creature.rarity]}, transparent)` }}
+      {/* Pixel scanline overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)',
+          backgroundSize: '100% 4px',
+        }}
       />
 
-      {/* Header */}
-      <div className="p-3 flex justify-between items-center text-[10px] uppercase font-black tracking-widest opacity-70">
-        <span style={{ color: ELEMENT_COLORS[creature.element] }}>{creature.element}</span>
-        <span>Lv.{creature.level}</span>
-        <span style={{ color: RARITY_COLORS[creature.rarity] }}>{creature.rarity}</span>
-      </div>
+      {/* Element glow */}
+      <div
+        className="absolute top-8 left-1/2 -translate-x-1/2 w-28 h-28 blur-[50px] opacity-15 pointer-events-none"
+        style={{ backgroundColor: elementColor }}
+      />
 
-      {/* Sprite Area */}
-      <div className="h-28 flex items-center justify-center relative overflow-hidden bg-white/5 mx-3 rounded-lg">
-        {ELEMENT_ICONS[creature.element]}
-        <div className="w-16 h-16 relative z-10 animate-float">
-          {/* Simple CSS Creature Placeholder */}
-          <div 
-            className="w-full h-full rounded-2xl shadow-xl"
-            style={{ 
-              backgroundColor: ELEMENT_COLORS[creature.element],
-              borderRadius: creature.element === 'Earth' ? '4px' : creature.element === 'Fire' ? '50% 50% 20% 20%' : '50%'
-            }}
-          />
+      {/* Rarity top strip */}
+      <div
+        className="absolute top-0 left-0 w-full h-[2px]"
+        style={{ backgroundColor: RARITY_COLORS[creature.rarity] }}
+      />
+
+      {/* Header row */}
+      <div className="relative z-10 flex items-center justify-between px-2.5 pt-3 pb-1">
+        <span
+          className="text-[8px] font-black uppercase tracking-[0.2em]"
+          style={{ color: elementColor }}
+        >
+          {creature.element}
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/30">
+            LV.{creature.level}
+          </span>
+          {/* Release button */}
+          {onRelease && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRelease(e) }}
+              className="text-white/20 hover:text-red-400 transition-colors"
+              title="Release Brawler"
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <h4 className="text-center text-lg font-fantasy mb-2 truncate">{creature.name}</h4>
-        
-        {/* HP Bar */}
-        <div className="mb-3">
-          <div className="flex justify-between text-[10px] mb-1 opacity-60 font-bold">
-            <span>HP</span>
-            <span>{hp}/{creature.maxHp}</span>
+      {/* Sprite area — flat, dark bg, pixel border bottom */}
+      <div
+        className="relative mx-2.5 flex items-center justify-center border-b-2 border-white/5"
+        style={{ height: cfg.sprite }}
+      >
+        <img
+          src={getCreatureImage(creature.element)}
+          alt={creature.name}
+          className={`object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] ${cfg.image} ${isEnemy ? 'scale-x-[-1]' : ''}`}
+          style={{ imageRendering: 'pixelated' }}
+        />
+      </div>
+
+      {/* Info area */}
+      <div className={`${cfg.padding} flex-1 flex flex-col justify-between relative z-10`}>
+        {/* Name + rarity */}
+        <div className="text-center mb-1">
+          <h4 className={`font-fantasy font-bold truncate leading-tight ${cfg.title}`}>
+            {creature.name}
+          </h4>
+          <div
+            className="text-[7px] uppercase font-black tracking-[0.25em] mt-0.5"
+            style={{ color: RARITY_COLORS[creature.rarity] + 'cc' }}
+          >
+            {creature.rarity}
           </div>
-          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-            <div 
+        </div>
+
+        {/* HP bar */}
+        <div className="w-full mt-auto">
+          <div className="flex justify-between text-[8px] mb-1 font-black tracking-tight">
+            <span className="text-white/40">HP</span>
+            <span className="text-white/40">{hp}/{creature.maxHp}</span>
+          </div>
+          {/* Pixel-chunked HP bar */}
+          <div className="w-full h-2 bg-[#1a1a2e] border border-white/10 relative overflow-hidden">
+            <div
               className={`h-full transition-all duration-500 ${getHpColor()}`}
               style={{ width: `${hpPercent}%` }}
             />
+            {/* Chunk separators */}
+            {[25, 50, 75].map(pct => (
+              <div
+                key={pct}
+                className="absolute top-0 bottom-0 w-px bg-black/40"
+                style={{ left: `${pct}%` }}
+              />
+            ))}
           </div>
         </div>
 
-        {showStats && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-bold">
-            <div className="flex items-center gap-1 opacity-70">
-              <Sword size={10} /> <span>ATK {creature.attack}</span>
-            </div>
-            <div className="flex items-center gap-1 opacity-70">
-              <Shield size={10} /> <span>DEF {creature.defense}</span>
-            </div>
-            <div className="flex items-center gap-1 opacity-70">
-              <Zap size={10} /> <span>SPD {creature.speed}</span>
-            </div>
-            <div className="flex items-center gap-1 opacity-70">
-              <Sparkles size={10} /> <span>SPC {creature.specialPower}</span>
-            </div>
+        {/* Stats grid */}
+        {showStats && cfg.statsVisible && (
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[8px] font-black uppercase pt-2 border-t border-white/5 mt-2 opacity-60">
+            <div className="flex items-center gap-1"><Sword size={8} /><span>{creature.attack}</span></div>
+            <div className="flex items-center gap-1"><Shield size={8} /><span>{creature.defense}</span></div>
+            <div className="flex items-center gap-1"><Zap size={8} /><span>{creature.speed}</span></div>
+            <div className="flex items-center gap-1"><Sparkles size={8} /><span>{creature.specialPower}</span></div>
           </div>
         )}
       </div>
 
-      {/* XP Bar */}
-      {!isEnemy && (
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5">
-          <div 
-            className="h-full bg-blue-500 opacity-50"
-            style={{ width: `${(creature.xp % 100)}%` }}
+      {/* XP bar at very bottom */}
+      {!isEnemy && size !== 'small' && (
+        <div className="w-full h-1 bg-[#1a1a2e]">
+          <div
+            className="h-full bg-blue-400 opacity-60"
+            style={{ width: `${creature.xp % 100}%` }}
           />
         </div>
+      )}
+
+      {/* Selected pixel corner accents */}
+      {selected && (
+        <>
+          <span className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2" style={{ borderColor: elementColor }} />
+          <span className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2" style={{ borderColor: elementColor }} />
+          <span className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2" style={{ borderColor: elementColor }} />
+          <span className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2" style={{ borderColor: elementColor }} />
+        </>
       )}
     </div>
   )

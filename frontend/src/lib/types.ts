@@ -36,15 +36,20 @@ export interface ActiveBattle {
   winner: string | null;
   isPve: boolean;
   botDifficulty: number;
+  wager: number;
   battleLog: number[];
+  p1Buff?: string | null;
+  p2Buff?: string | null;
 }
 
 export interface TournamentEntry {
   id: number;
+  name: string;
   participants: string[];
   round: number;
   winner: string | null;
   prizePool: number;
+  entryFee: number;
   isOpen: boolean;
   weekNumber: number;
 }

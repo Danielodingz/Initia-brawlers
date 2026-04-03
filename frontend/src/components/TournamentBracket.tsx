@@ -1,62 +1,186 @@
 import React from 'react'
 import { Trophy, Swords } from 'lucide-react'
+import { useTournament } from '../hooks/useTournament'
 
-const TournamentBracket: React.FC = () => {
-  // Mock bracket data
+interface TournamentBracketProps {
+  tournamentId: number;
+}
+
+const TournamentBracket: React.FC<TournamentBracketProps> = ({ tournamentId }) => {
+  const { tournaments, isLoading } = useTournament()
+  const tournament = tournaments?.find(t => t.id === tournamentId)
+
+  const players = tournament?.participants || []
+  const getPlayer = (idx: number) => players[idx] || (tournament?.isOpen ? 'VACANT' : `Bot_${idx + 1}`)
+  const fmt = (addr: string) => addr.length > 14 ? `${addr.slice(0, 6)}..${addr.slice(-4)}` : addr
+
+  if (isLoading || !tournament) {
+    return (
+      <div className="min-h-screen bg-[#07070f] flex items-center justify-center flex-col gap-4">
+        <div className="w-8 h-8 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+        <p className="text-[9px] font-black uppercase tracking-[0.35em] text-yellow-500/60 animate-pulse">▶ Syncing Bracket...</p>
+      </div>
+    )
+  }
+
   const rounds = [
     {
       name: 'Round of 8',
       matches: [
-        { p1: 'alice.init', p2: 'bot_alpha', winner: 'alice.init' },
-        { p1: 'bob.init', p2: 'bot_beta', winner: 'bob.init' },
-        { p1: 'carol.init', p2: 'bot_gamma', winner: 'carol.init' },
-        { p1: 'dave.init', p2: 'bot_delta', winner: 'dave.init' },
+        { p1: getPlayer(0), p2: getPlayer(1), winner: tournament.round > 1 ? getPlayer(0) : null },
+        { p1: getPlayer(2), p2: getPlayer(3), winner: tournament.round > 1 ? getPlayer(2) : null },
+        { p1: getPlayer(4), p2: getPlayer(5), winner: tournament.round > 1 ? getPlayer(5) : null },
+        { p1: getPlayer(6), p2: getPlayer(7), winner: tournament.round > 1 ? getPlayer(6) : null },
       ]
     },
     {
       name: 'Semi-Finals',
       matches: [
-        { p1: 'alice.init', p2: 'bob.init', winner: 'alice.init' },
-        { p1: 'carol.init', p2: 'dave.init', winner: 'carol.init' },
+        { p1: tournament.round > 1 ? getPlayer(0) : 'TBD', p2: tournament.round > 1 ? getPlayer(2) : 'TBD', winner: tournament.round > 2 ? getPlayer(0) : null },
+        { p1: tournament.round > 1 ? getPlayer(5) : 'TBD', p2: tournament.round > 1 ? getPlayer(6) : 'TBD', winner: tournament.round > 2 ? getPlayer(5) : null },
       ]
     },
     {
       name: 'Finals',
       matches: [
-        { p1: 'alice.init', p2: 'carol.init', winner: null },
+        { p1: tournament.round > 2 ? getPlayer(0) : 'TBD', p2: tournament.round > 2 ? getPlayer(5) : 'TBD', winner: tournament.winner },
       ]
     }
   ]
 
   return (
-    <div className="min-h-screen bg-dark p-8 flex flex-col items-center">
-      <div className="mb-12 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded-full text-[10px] font-black uppercase tracking-widest text-yellow-500 mb-4 animate-pulse">
-           <Trophy size={14} /> Week 3 Championship
+    <div className="min-h-screen bg-[#07070f] text-white flex flex-col relative overflow-hidden">
+      {/* Pixel grid background */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.04]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
+      {/* Scanlines */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg,#fff 0px,#fff 1px,transparent 1px,transparent 3px)',
+          backgroundSize: '100% 3px',
+        }}
+      />
+
+      {/* ── Header ─────────────────────────────── */}
+      <div className="relative z-10 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-8 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <span className="w-2 h-8 bg-yellow-500" />
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-yellow-500/60 mb-0.5">▶ Tournament</div>
+            <h1 className="text-xl font-fantasy font-black uppercase tracking-tight text-white">
+              {tournament.name || 'Week 3 Arena'}
+            </h1>
+          </div>
         </div>
-        <h2 className="text-5xl font-fantasy font-bold">Tournament Bracket</h2>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border-2 border-yellow-500/30">
+            <Trophy size={11} className="text-yellow-400" fill="currentColor" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400">
+              {tournament.prizePool.toFixed(2)} INIT
+            </span>
+          </div>
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
+            Tournament #{tournament.id}
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-6xl">
+      {/* ── Bracket ────────────────────────────── */}
+      <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-0 overflow-x-auto">
         {rounds.map((round, rIdx) => (
-          <div key={rIdx} className="flex-1 space-y-12">
-            <div className="text-center font-black uppercase tracking-[0.3em] text-white/20 text-[10px]">{round.name}</div>
-            <div className="space-y-8">
+          <div
+            key={rIdx}
+            className="flex-1 flex flex-col border-r-2 border-[#1a1a2e] last:border-r-0 min-w-[220px]"
+          >
+            {/* Round header */}
+            <div className="flex items-center gap-2 px-5 py-3 border-b-2 border-[#1a1a2e] bg-[#0c0c18]">
+              <span className="w-1 h-4"
+                style={{ background: rIdx === 2 ? '#eab308' : rIdx === 1 ? '#f97316' : '#ffffff22' }}
+              />
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
+                {round.name}
+              </span>
+            </div>
+
+            {/* Matches */}
+            <div className="flex-1 flex flex-col justify-around gap-0 p-5 gap-4">
               {round.matches.map((match, mIdx) => (
                 <div key={mIdx} className="relative">
-                  <div className="fantasy-card bg-panel/50 border-white/5 overflow-hidden">
-                    <div className={`p-3 text-xs font-bold border-b border-white/5 flex items-center justify-between ${match.winner === match.p1 ? 'bg-yellow-500/10 text-yellow-500' : 'opacity-60'}`}>
-                      <span>{match.p1}</span>
-                      {match.winner === match.p1 && <Trophy size={12} />}
+                  {/* Match card */}
+                  <div className="border-2 border-[#1a1a2e] overflow-hidden bg-[#0c0c18]"
+                    style={rIdx === 2 ? { borderColor: '#eab30830' } : {}}>
+                    {/* Pixel corner accents for finals */}
+                    {rIdx === 2 && (
+                      <>
+                        <span className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-yellow-500/50" />
+                        <span className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-yellow-500/50" />
+                        <span className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-yellow-500/50" />
+                        <span className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-yellow-500/50" />
+                      </>
+                    )}
+
+                    {/* Player 1 row */}
+                    <div
+                      className="flex items-center justify-between px-4 py-3 border-b-2 border-[#1a1a2e] transition-colors"
+                      style={match.winner === match.p1
+                        ? { background: '#eab30814', borderColor: '#eab30822' }
+                        : match.winner && match.winner !== match.p1
+                          ? { opacity: 0.4 }
+                          : {}}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-tight truncate max-w-[130px]"
+                        style={{ color: match.winner === match.p1 ? '#fde047' : 'rgba(255,255,255,0.7)' }}
+                      >
+                        {match.p1 === 'TBD' || match.p1 === 'VACANT'
+                          ? <span className="text-white/20 italic">{match.p1}</span>
+                          : fmt(match.p1)}
+                      </span>
+                      {match.winner === match.p1 && (
+                        <Trophy size={10} className="text-yellow-400 flex-shrink-0" fill="currentColor" />
+                      )}
                     </div>
-                    <div className={`p-3 text-xs font-bold flex items-center justify-between ${match.winner === match.p2 ? 'bg-yellow-500/10 text-yellow-500' : 'opacity-60'}`}>
-                      <span>{match.p2}</span>
-                      {match.winner === match.p2 && <Trophy size={12} />}
+
+                    {/* VS divider */}
+                    <div className="px-4 py-0.5 flex items-center gap-2 bg-[#08080f]">
+                      <div className="flex-1 h-px bg-white/5" />
+                      <span className="text-[7px] font-black text-white/15 uppercase tracking-widest">vs</span>
+                      <div className="flex-1 h-px bg-white/5" />
+                    </div>
+
+                    {/* Player 2 row */}
+                    <div
+                      className="flex items-center justify-between px-4 py-3 transition-colors"
+                      style={match.winner === match.p2
+                        ? { background: '#eab30814' }
+                        : match.winner && match.winner !== match.p2
+                          ? { opacity: 0.4 }
+                          : {}}
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-tight truncate max-w-[130px]"
+                        style={{ color: match.winner === match.p2 ? '#fde047' : 'rgba(255,255,255,0.7)' }}
+                      >
+                        {match.p2 === 'TBD' || match.p2 === 'VACANT'
+                          ? <span className="text-white/20 italic">{match.p2}</span>
+                          : fmt(match.p2)}
+                      </span>
+                      {match.winner === match.p2 && (
+                        <Trophy size={10} className="text-yellow-400 flex-shrink-0" fill="currentColor" />
+                      )}
                     </div>
                   </div>
-                  {/* Connector lines (simplified) */}
+
+                  {/* Pixel connector line to next round */}
                   {rIdx < rounds.length - 1 && (
-                    <div className="hidden md:block absolute top-1/2 -right-8 w-8 h-px bg-white/10" />
+                    <div className="hidden md:block absolute top-1/2 -right-[1px] w-5 h-px bg-[#2a2a3e]" />
                   )}
                 </div>
               ))}
@@ -65,11 +189,30 @@ const TournamentBracket: React.FC = () => {
         ))}
       </div>
 
-      <div className="mt-16 p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-6 max-w-xl">
-        <div className="p-4 bg-orange-600 rounded-xl animate-pulse shadow-lg"><Swords /></div>
-        <div>
-          <div className="text-lg font-bold">Next Battle: alice.init vs carol.init</div>
-          <p className="text-xs text-white/40 font-medium">Tournament finals starting soon. Winners take 14.40 INIT.</p>
+      {/* ── Status bar ─────────────────────────── */}
+      <div className="relative z-10 bg-[#0a0a14] border-t-2 border-[#1a1a2e] px-6 py-4 flex items-center gap-4">
+        <div className="p-3 bg-orange-600/20 border-2 border-orange-500/30 flex-shrink-0">
+          <Swords size={16} className="text-orange-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] font-black uppercase tracking-widest text-white mb-0.5">
+            {tournament.isOpen
+              ? `▶ Waiting for ${8 - players.length} more players...`
+              : tournament.winner
+                ? '▶ Tournament Concluded!'
+                : '▶ Battle In Progress'}
+          </div>
+          <div className="text-[8px] font-black uppercase tracking-[0.2em] text-white/25">
+            {tournament.winner
+              ? `Champion rewarded: ${tournament.prizePool.toFixed(2)} INIT`
+              : 'Turn resolution every 60 seconds'}
+          </div>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <div className="text-[8px] font-black uppercase tracking-widest text-white/20">Round</div>
+          <div className="text-xl font-black text-orange-500">{tournament.round}/3</div>
         </div>
       </div>
     </div>

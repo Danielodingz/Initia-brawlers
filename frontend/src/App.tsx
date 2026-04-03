@@ -3,6 +3,7 @@ import LandingScreen from './components/LandingScreen'
 import MintScreen from './components/MintScreen'
 import StableScreen from './components/StableScreen'
 import BattleArena from './components/BattleArena'
+import TournamentDashboard from './components/TournamentDashboard'
 import TournamentBracket from './components/TournamentBracket'
 import Leaderboard from './components/Leaderboard'
 import { useCreature } from './hooks/useCreature'
@@ -13,12 +14,17 @@ type Screen = 'landing' | 'mint' | 'stable' | 'battle' | 'tournament'
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('landing')
   const [activeBattleId, setActiveBattleId] = useState<number | null>(null)
+  const [selectedCreatureId, setSelectedCreatureId] = useState<number | null>(null)
+  const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(null)
+  const [botLevel, setBotLevel] = useState(1)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   
   const { creatures } = useCreature()
   const { isConnected } = useInterwovenKit()
 
   const handleEnter = () => {
+    // Reset bot level when entering from landing
+    setBotLevel(1)
     // If we have creatures, go to stable (menu). Otherwise, go to mint.
     const hasBrawlers = creatures && creatures.length > 0;
     if (hasBrawlers) {
@@ -30,13 +36,21 @@ const App: React.FC = () => {
 
   const handlePlayGuest = () => {
     // In guest mode, useCreature will provide mock brawlers
+    setBotLevel(1)
     setScreen('stable')
   }
 
-  const handleStartBattle = (creatureId: number) => {
-    // In MOCK_MODE, we just generate an ID
-    setActiveBattleId(Math.floor(Math.random() * 10000))
+  const handleStartBattle = (battleId: number, playerCreatureId?: number) => {
+    if (!battleId || isNaN(battleId)) return
+    setActiveBattleId(battleId)
+    if (playerCreatureId) setSelectedCreatureId(playerCreatureId)
     setScreen('battle')
+  }
+
+  const handleNextLevel = () => {
+    setBotLevel(prev => prev + 1)
+    setActiveBattleId(Math.floor(Math.random() * 10000))
+    // Resetting battle state is handled by BattleArena re-initialization on prop change
   }
 
   return (
@@ -45,7 +59,7 @@ const App: React.FC = () => {
       {screen === 'landing' && (
         <LandingScreen 
           onEnter={handleEnter} 
-          onPlayGuest={handleEnter} 
+          onPlayGuest={handlePlayGuest} 
         />
       )}
 
@@ -59,28 +73,43 @@ const App: React.FC = () => {
         <StableScreen 
           onStartBattle={handleStartBattle}
           onMint={() => setScreen('mint')}
-          onViewTournament={() => setScreen('tournament')}
+          onViewTournament={() => {
+            setSelectedTournamentId(null);
+            setScreen('tournament');
+          }}
           onViewLeaderboard={() => setShowLeaderboard(true)}
         />
       )}
 
-      {screen === 'battle' && activeBattleId && (
+      {screen === 'battle' && activeBattleId !== null && (
         <BattleArena 
           battleId={activeBattleId} 
+          playerCreatureId={selectedCreatureId || undefined}
+          botLevel={botLevel}
           onFinish={() => setScreen('stable')} 
+          onNextLevel={handleNextLevel}
         />
       )}
 
       {screen === 'tournament' && (
-        <div className="relative">
-          <button 
-            onClick={() => setScreen('stable')}
-            className="fixed top-8 left-8 z-50 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-black uppercase hover:bg-white/10 transition-all"
-          >
-            ← Back to Stable
-          </button>
-          <TournamentBracket />
-        </div>
+        selectedTournamentId === null ? (
+          <TournamentDashboard 
+            onBack={() => setScreen('stable')}
+            onViewBracket={(id) => setSelectedTournamentId(id)}
+            creatures={creatures || undefined}
+          />
+        ) : (
+          <div className="relative">
+            <button 
+              onClick={() => setSelectedTournamentId(null)}
+              className="fixed top-8 left-8 z-50 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase hover:bg-white/10 transition-all backdrop-blur-xl flex items-center gap-3 group"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500 group-hover:scale-150 transition-transform" />
+              Return to Dashboard
+            </button>
+            <TournamentBracket tournamentId={selectedTournamentId} />
+          </div>
+        )
       )}
 
       {/* Global Overlays */}

@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState } from 'react'
 export const MockKitContext = createContext<any>(null)
 
 export const MockInterwovenKitProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isConnected, setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(true)
   const [userName] = useState<string | null>(null)
 
   const value = {

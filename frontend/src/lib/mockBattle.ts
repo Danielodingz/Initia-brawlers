@@ -18,25 +18,41 @@ function elementMultiplier(attackerEl: string, defenderEl: string): number {
 }
 
 // Bot AI — mirrors battle.move bot_choose_move exactly
+// Bot AI — focuses on Survival Strategy
 function botChooseMove(
+  botCreature: Creature,
+  playerCreature: Creature,
   botHp: number, botMaxHp: number,
   playerHp: number, playerMaxHp: number,
-  turn: number,
-  difficulty: number
+  turn: number
 ): MoveType {
-  if (difficulty === 0) return 'Attack'
-
-  if (difficulty === 1) {
-    if (botHp < botMaxHp * 0.3) return 'Special'
-    if (botHp < botMaxHp * 0.5) return 'Defend'
-    if (playerHp < playerMaxHp * 0.25) return 'HeavyAttack'
-    return (turn % 5 < 3) ? 'Attack' : 'Defend'
+  const level = botCreature.level
+  
+  // EARLY GAME (Level 1-3) - Forgiving AI
+  if (level <= 3) {
+    // ALWAYS uses ATTACK (80%), DEFEND (20%)
+    return (Math.random() < 0.8) ? 'Attack' : 'Defend'
   }
 
-  // Hard AI
-  if (botHp < botMaxHp * 0.2) return 'Special'
-  if (playerHp < playerMaxHp * 0.15) return 'HeavyAttack'
-  return (turn % 2 === 0) ? 'Attack' : 'HeavyAttack'
+  // MID GAME (Level 4-10) - Real strategy starts
+  if (level <= 10) {
+    if (botHp < botMaxHp * 0.3) return 'Defend'
+    if (turn % 3 === 0) return (Math.random() < 0.6) ? 'HeavyAttack' : 'Attack'
+    return 'Attack'
+  }
+
+  // LATE GAME / HARD MODE (Adaptive)
+  // Adaptive: reads HP and patterns
+  if (botHp < botMaxHp * 0.25) return 'Defend'
+  if (playerHp < playerMaxHp * 0.2 && botHp > botMaxHp * 0.4) return 'HeavyAttack'
+  if (turn % 4 === 1) return 'Special'
+  
+  // Randomness to avoid predictable pattern reading by player
+  const rand = Math.random()
+  if (rand < 0.4) return 'Attack'
+  if (rand < 0.7) return 'HeavyAttack'
+  if (rand < 0.9) return 'Defend'
+  return 'Special'
 }
 
 // Resolve one turn — returns updated HPs and log entry
@@ -47,7 +63,9 @@ export function resolveTurn(
   botMove: MoveType,
   playerHp: number,
   botHp: number,
-  turn: number
+  turn: number,
+  playerBuff: string | null = null,
+  botBuff: string | null = null
 ): {
   newPlayerHp: number
   newBotHp: number
@@ -55,109 +73,173 @@ export function resolveTurn(
   botDamageDealt: number
   playerMissed: boolean
   botMissed: boolean
+  playerHealed: number
+  botHealed: number
+  playerRecoil: number
+  botRecoil: number
+  playerNewBuff: string | null
+  botNewBuff: string | null
+  clutchSurvival: boolean
   logLine: string
 } {
-  const pMoveCode = MOVE_CODES[playerMove]
-  const bMoveCode = MOVE_CODES[botMove]
-
-  // Determine speed order
-  const playerFirst = playerCreature.speed >= botCreature.speed
+  const level = playerCreature.level
+  
+  // DETERMINE SPEED ORDER
+  // Buffs can affect speed (Wind: +30%)
+  const playerSpd = playerBuff === 'Wind' ? playerCreature.speed * 1.3 : playerCreature.speed
+  const botSpd = botBuff === 'Wind' ? botCreature.speed * 1.3 : botCreature.speed
+  const playerFirst = playerSpd >= botSpd
 
   let newPlayerHp = playerHp
   let newBotHp = botHp
+  let playerNewBuff: string | null = null
+  let botNewBuff: string | null = null
   let playerDamageDealt = 0
   let botDamageDealt = 0
+  let playerHealed = 0
+  let botHealed = 0
+  let playerRecoil = 0
+  let botRecoil = 0
   let playerMissed = false
   let botMissed = false
 
-  function calcDamage(
-    attacker: Creature, defender: Creature,
-    move: MoveType, defenderDefended: boolean,
-    turnNum: number
-  ): { damage: number; missed: boolean; selfCost: number } {
-    const effectiveDefense = defenderDefended
-      ? defender.defense * 2
-      : defender.defense
-
-    if (move === 'Defend') return { damage: 0, missed: false, selfCost: 0 }
-
-    if (move === 'Attack') {
-      const raw = Math.max(attacker.attack - effectiveDefense / 2, 1)
-      return { damage: Math.floor(raw), missed: false, selfCost: 0 }
-    }
-
-    if (move === 'HeavyAttack') {
-      const missed = (attacker.speed < defender.speed) && (turnNum % 3 === 0)
-      if (missed) return { damage: 0, missed: true, selfCost: 0 }
-      const raw = Math.max(attacker.attack * 1.8 - effectiveDefense / 2, 1)
-      return { damage: Math.floor(raw), missed: false, selfCost: 0 }
-    }
-
-    if (move === 'Special') {
-      const elMult = elementMultiplier(attacker.element, defender.element)
-      const raw = attacker.specialPower * 2 * elMult
-      const adjusted = Math.max(raw - effectiveDefense / 4, 1)
-      const selfCost = Math.floor(attacker.maxHp * 0.1)
-      return { damage: Math.floor(adjusted), missed: false, selfCost }
-    }
-
-    return { damage: 0, missed: false, selfCost: 0 }
-  }
-
-  // Heal from Defend
-  function applyDefend(creature: Creature, currentHp: number): number {
-    const healed = Math.floor(creature.maxHp * 0.05)
-    return Math.min(currentHp + healed, creature.maxHp)
-  }
-
-  // Apply moves in speed order
+  // APPLY MOVES IN SPEED ORDER
   const actors = playerFirst
     ? [
-        { move: playerMove, atk: playerCreature, def: botCreature, isPlayer: true },
-        { move: botMove, atk: botCreature, def: playerCreature, isPlayer: false },
+        { isPlayer: true, move: playerMove, self: playerCreature, opp: botCreature, selfBuff: playerBuff, oppBuff: botBuff, oppMove: botMove },
+        { isPlayer: false, move: botMove, self: botCreature, opp: playerCreature, selfBuff: botBuff, oppBuff: playerBuff, oppMove: playerMove },
       ]
     : [
-        { move: botMove, atk: botCreature, def: playerCreature, isPlayer: false },
-        { move: playerMove, atk: playerCreature, def: botCreature, isPlayer: true },
+        { isPlayer: false, move: botMove, self: botCreature, opp: playerCreature, selfBuff: botBuff, oppBuff: playerBuff, oppMove: playerMove },
+        { isPlayer: true, move: playerMove, self: playerCreature, opp: botCreature, selfBuff: playerBuff, oppBuff: botBuff, oppMove: botMove },
       ]
 
   for (const actor of actors) {
+    const isEarlyGame = level <= 3
+    
+    // 1. SURVIVAL MODIFIER (HP < 30%)
+    const currentSelfHp = actor.isPlayer ? newPlayerHp : newBotHp
+    const hpRatio = currentSelfHp / actor.self.maxHp
+    let survivalScaling = 1.0
+    if (hpRatio < 0.3) {
+      survivalScaling = 0.9 // -10% incoming dmg
+      if (isEarlyGame) survivalScaling = 0.8 // -20% incoming dmg in early game assist
+    }
+
+    // 2. APPLY MOVE EFFECTS
     if (actor.move === 'Defend') {
-      if (actor.isPlayer) newPlayerHp = applyDefend(playerCreature, newPlayerHp)
-      else newBotHp = applyDefend(botCreature, newBotHp)
+      let healPct = 0.08
+      if (isEarlyGame) healPct *= 1.2 // +20% heal in early game
+      if (hpRatio < 0.3 && isEarlyGame) healPct += 0.05 // Extra assist heal
+      const healed = Math.floor(actor.self.maxHp * healPct)
+      
+      if (actor.isPlayer) {
+        newPlayerHp = Math.min(newPlayerHp + healed, actor.self.maxHp)
+        playerHealed = healed
+      } else {
+        newBotHp = Math.min(newBotHp + healed, actor.self.maxHp)
+        botHealed = healed
+      }
       continue
     }
 
-    const defenderDefended = actor.isPlayer
-      ? botMove === 'Defend'
-      : playerMove === 'Defend'
+    // 3. DAMAGE CALCULATION
+    const oppDefending = actor.oppMove === 'Defend'
+    const defMultiplier = oppDefending ? 0.5 : 1.0 // Defend reduces dmg by 50%
+    
+    // Earth Buff: +30% defense (simulated as -20% incoming damage)
+    const earthScaling = (actor.oppBuff === 'Earth') ? 0.7 : 1.0
+    
+    // Water Buff: Affects Healing next turn, but let's check it for Lifesteal here too? 
+    // Spec says Shadow is lifesteal. Shadow: recover 30% damage dealt.
+    
+    let rawDmg = 0
+    let missed = false
+    let selfCost = 0
+    
+    if (actor.move === 'Attack') {
+      rawDmg = actor.self.attack
+    } else if (actor.move === 'HeavyAttack') {
+      // 30% miss if slower or equal speed
+      const isSlower = actor.isPlayer ? playerSpd <= botSpd : botSpd <= playerSpd
+      if (isSlower && Math.random() < 0.3) {
+        missed = true
+        rawDmg = 0
+        const recoil = Math.floor(actor.self.maxHp * 0.05)
+        if (actor.isPlayer) { newPlayerHp = Math.max(newPlayerHp - recoil, 0); playerRecoil = recoil }
+        else { newBotHp = Math.max(newBotHp - recoil, 0); botRecoil = recoil }
+      } else {
+        rawDmg = actor.self.attack * 1.8
+      }
+    } else if (actor.move === 'Special') {
+      rawDmg = actor.self.specialPower * 1.5
+      selfCost = Math.floor(actor.self.maxHp * 0.1) // 10% recoil
+      
+      // Grant next turn buff
+      if (actor.isPlayer) playerNewBuff = actor.self.element
+      else botNewBuff = actor.self.element
+    }
 
-    const { damage, missed, selfCost } = calcDamage(
-      actor.atk, actor.def, actor.move, defenderDefended, turn
-    )
+    // Apply Boosts (Fire: +30% attack dmg)
+    if (actor.selfBuff === 'Fire') rawDmg *= 1.3
 
+    // Apply Element advantage (Mid Game+)
+    let elMult = 1.0
+    if (level >= 4) {
+      elMult = elementMultiplier(actor.self.element, actor.opp.element)
+      if (elMult > 1) elMult = 1.3 // ±30% instead of original ±20%
+      else if (elMult < 1) elMult = 0.7
+    }
+
+    // Final Damage
+    let finalDmg = Math.floor((rawDmg - actor.opp.defense / 4) * defMultiplier * elMult * survivalScaling * earthScaling)
+    if (!missed) finalDmg = Math.max(finalDmg, 1)
+
+    // Early Game Enemy Dmg Reduction (-50% for level 1-3)
+    if (!actor.isPlayer && isEarlyGame) finalDmg = Math.floor(finalDmg * 0.5)
+
+    // Shadow Buff: Recovers 30% damage dealt
+    if (actor.self.element === 'Shadow' && actor.move === 'Special' && !missed) {
+      const heal = Math.floor(finalDmg * 0.3)
+      if (actor.isPlayer) { newPlayerHp = Math.min(newPlayerHp + heal, actor.self.maxHp); playerHealed += heal }
+      else { newBotHp = Math.min(newBotHp + heal, actor.self.maxHp); botHealed += heal }
+    }
+
+    // Apply Self Cost (Special)
     if (actor.isPlayer) {
+      newPlayerHp = Math.max(newPlayerHp - selfCost, 0)
+      playerDamageDealt = finalDmg
+      newBotHp = Math.max(newBotHp - finalDmg, 0)
       playerMissed = missed
-      playerDamageDealt = damage
-      newBotHp = Math.max(newBotHp - damage, 0)
-      if (selfCost > 0) newPlayerHp = Math.max(newPlayerHp - selfCost, 1)
     } else {
+      newBotHp = Math.max(newBotHp - selfCost, 0)
+      botDamageDealt = finalDmg
+      newPlayerHp = Math.max(newPlayerHp - finalDmg, 0)
       botMissed = missed
-      botDamageDealt = damage
-      newPlayerHp = Math.max(newPlayerHp - damage, 0)
-      if (selfCost > 0) newBotHp = Math.max(newBotHp - selfCost, 1)
     }
   }
 
-  const missedText = playerMissed ? ' (missed!)' : ''
-  const elBonus = playerMove === 'Special' &&
-    elementMultiplier(playerCreature.element, botCreature.element) > 1
-    ? ' ✨ Super effective!' : ''
+  // EARLY GAME DEATH PROTECTION: Cannot die in first 4 turns
+  if (level <= 3 && turn <= 4) {
+    if (newPlayerHp === 0) newPlayerHp = 1
+  }
 
-  const logLine = `Turn ${turn}: You used ${playerMove}${missedText} → ${playerDamageDealt} dmg${elBonus}. ` +
-    `${botCreature.name} used ${botMove} → ${botDamageDealt} dmg.`
+  // CHECK FOR CLUTCH SURVIVAL
+  const clutchSurvival = playerHp > 0 && newPlayerHp > 0 && newPlayerHp < playerCreature.maxHp * 0.05
 
-  return { newPlayerHp, newBotHp, playerDamageDealt, botDamageDealt, playerMissed, botMissed, logLine }
+  const logLine = missedLogLine(turn, playerMove, playerDamageDealt, playerMissed, botCreature.name, botMove, botDamageDealt, botMissed)
+
+  return { 
+    newPlayerHp, newBotHp, playerDamageDealt, botDamageDealt, playerMissed, botMissed, 
+    playerHealed, botHealed, playerRecoil, botRecoil,
+    playerNewBuff, botNewBuff, clutchSurvival, logLine 
+  }
+}
+
+function missedLogLine(turn: number, pM: string, pD: number, pMi: boolean, bN: string, bM: string, bD: number, bMi: boolean): string {
+  const pText = pMi ? `missed!` : `${pD} dmg`
+  const bText = bMi ? `missed!` : `${bD} dmg`
+  return `Turn ${turn}: You used ${pM} (${pText}). ${bN} used ${bM} (${bText}).`
 }
 
 export { botChooseMove }

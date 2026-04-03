@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useInterwovenKit } from './useInterwovenKit'
 import { useCallback } from 'react'
-import { buildMintCreature, buildSetUsername } from '../lib/transactions'
-import { LCD_URL, CONTRACT_ADDRESS, MOCK_MODE } from '../lib/constants'
+import { buildMintCreature, buildSetUsername, buildReleaseCreature } from '../lib/transactions'
+import { CONTRACT_ADDRESS, MOCK_MODE } from '../lib/constants'
+import { initiaClient } from '../lib/initia'
 import { getMockCreatures } from '../lib/initia'
 import type { Creature } from '../lib/types'
+
+import { bcs, AccAddress } from '@initia/initia.js'
 
 export function useCreature(overrideAddress?: string) {
   const { address, requestTxBlock, isConnected } = useInterwovenKit()
@@ -15,20 +18,33 @@ export function useCreature(overrideAddress?: string) {
     queryKey: ['creatures', targetAddress],
     queryFn: async () => {
       // If MOCK_MODE is on OR if we're a guest (no address), return mock data for preview
-      if (MOCK_MODE || !targetAddress) return getMockCreatures()
+      if (MOCK_MODE || !targetAddress) return getMockCreatures() as Creature[]
+
+      // Avoid calls with invalid addresses to prevent API 400 errors
+      if (!AccAddress.validate(targetAddress)) {
+        console.warn("Invalid address detected in useCreature, skipping query:", targetAddress);
+        return [];
+      }
 
       // Call Move view function: brawlers::get_stable(addr)
-      const res = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          function_name: 'get_stable',
-          type_args: [],
-          args: [btoa(targetAddress)],  // BCS-encoded address
-        }),
-      })
-      const data = await res.json()
-      return parseCreaturesFromChain(data.data)
+      try {
+        // Initia REST API expects BCS-serialized base64 for address arguments
+        // This matches the working logic in your test5.js script
+        const serializedAddress = bcs.address().serialize(targetAddress).toBase64()
+        
+        const res = await initiaClient.move.viewFunction<any[]>(
+          CONTRACT_ADDRESS,
+          'brawlers',
+          'get_stable',
+          [],
+          [serializedAddress]
+        )
+        // SDK's viewFunction automatically JSON-parses the move result into a JS object/array
+        return parseCreaturesFromChain(res ?? [])
+      } catch (err) {
+        console.error("View function 'get_stable' failed. Check if LCD_URL is reachable and CONTRACT_ADDRESS is correct.", err)
+        return []
+      }
     },
     enabled: !!targetAddress || MOCK_MODE,
     refetchInterval: 5000,
@@ -43,6 +59,8 @@ export function useCreature(overrideAddress?: string) {
   ) => {
     if (MOCK_MODE) return { transactionHash: 'mock_hash' }
     if (!address) throw new Error('Wallet not connected')
+    
+
     const seed = Math.floor(Date.now() / 1000) % 100000
     const message = buildMintCreature(address, name, element, rarity, seed)
     const result = await requestTxBlock({ messages: [message] })
@@ -59,6 +77,17 @@ export function useCreature(overrideAddress?: string) {
     return result
   }, [address, requestTxBlock])
 
+  // Release a creature (delete from stable)
+  const releaseCreature = useCallback(async (creatureId: number) => {
+    if (MOCK_MODE) return { transactionHash: 'mock_hash' }
+    if (!address) throw new Error('Wallet not connected')
+    
+    const message = buildReleaseCreature(address, creatureId)
+    const result = await requestTxBlock({ messages: [message] })
+    await refetch()
+    return result
+  }, [address, requestTxBlock, refetch])
+
   return {
     creatures: (creatures ?? []) as Creature[],
     isLoading,
@@ -66,6 +95,7 @@ export function useCreature(overrideAddress?: string) {
     refetch,
     mintCreature,
     setUsername,
+    releaseCreature,
     hasCreatures: ((creatures as Creature[])?.length ?? 0) > 0,
     isConnected
   }
@@ -90,5 +120,5 @@ function parseCreaturesFromChain(data: any[]): Creature[] {
     wins: Number(c.wins),
     losses: Number(c.losses),
     inBattle: Boolean(c.in_battle),
-  }))
+  } as Creature))
 }

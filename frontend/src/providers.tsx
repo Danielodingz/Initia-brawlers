@@ -9,6 +9,7 @@ import {
   TESTNET,
 } from '@initia/interwovenkit-react'
 import interwovenKitStyles from '@initia/interwovenkit-react/styles.js'
+import { CHAIN_ID } from './lib/constants'
 
 // Wagmi config — required peer dependency
 const wagmiConfig = createConfig({
@@ -36,17 +37,9 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
-        {/*
-          Use the TESTNET preset as the base config — this provides all
-          required service URLs (registry, router, glyph, etc.) so the
-          SDK initializes without crashing.
-
-          We override defaultChainId to point to Initia testnet.
-          enableAutoSign lets the SDK know we handle battle UX without popups.
-        */}
         <InterwovenKitProvider
           {...TESTNET}
-          defaultChainId={TESTNET.defaultChainId}
+          defaultChainId={CHAIN_ID}
           theme="dark"
           enableAutoSign
         >

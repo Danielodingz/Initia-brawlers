@@ -1,7 +1,7 @@
 import React from 'react'
 import WalletConnect from './WalletConnect'
 import { useInterwovenKit } from '../hooks/useInterwovenKit'
-import { Sword, Shield, Trophy, ChevronRight } from 'lucide-react'
+import { Shield, Trophy, ChevronRight } from 'lucide-react'
 
 interface LandingScreenProps {
   onEnter: () => void;
@@ -12,11 +12,20 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onEnter, onPlayGuest }) =
   const { isConnected } = useInterwovenKit()
 
   return (
-    <div className="min-h-screen bg-dark overflow-hidden relative flex flex-col items-center justify-center p-6">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 z-0 bg-[url('/background.png')] bg-cover bg-center pointer-events-none" 
-        style={{ opacity: 0.5 }}
+    <div className="min-h-screen bg-[#07070f] overflow-hidden relative flex flex-col items-center justify-center p-4">
+      {/* Background Image - keep pixelated if it's pixel art, otherwise keep it */}
+      <div
+        className="absolute inset-0 z-0 bg-[url('/game-background.jpg')] bg-cover bg-center pointer-events-none"
+        style={{ opacity: 0.5, imageRendering: 'pixelated' }}
+      />
+
+      {/* Pixel scanlines overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg,#fff 0px,#fff 1px,transparent 1px,transparent 4px)',
+          backgroundSize: '100% 4px',
+        }}
       />
 
       {/* Background Effects */}
@@ -26,65 +35,75 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onEnter, onPlayGuest }) =
       </div>
 
       {/* Hero Section */}
-      <div className="relative z-10 text-center mb-16">
-        <div className="flex items-center justify-center gap-4 mb-6 opacity-50">
-          <Sword size={24} />
+      <div className="relative z-10 text-center mt-2 mb-8 w-full max-w-4xl">
+        <div className="flex items-center justify-center gap-4 mb-4 opacity-60">
+          <img src="/swords.png" alt="Combat" className="w-5 h-5 object-contain" style={{ imageRendering: 'pixelated' }} />
           <div className="h-px w-12 bg-white/20" />
-          <span className="text-xs tracking-[0.5em] font-black uppercase">Initiate Hackathon</span>
+          <span className="text-[10px] tracking-[0.4em] font-black uppercase text-white">Initiate Hackathon</span>
           <div className="h-px w-12 bg-white/20" />
-          <Sword size={24} className="scale-x-[-1]" />
+          <img src="/swords.png" alt="Combat" className="w-5 h-5 object-contain scale-x-[-1]" style={{ imageRendering: 'pixelated' }} />
         </div>
 
-        <div className="relative group perspective-1000">
+        <div className="relative group mb-6 flex justify-center">
           <img
             src="/logo1.png"
             alt="Initia Brawlers"
-            className="w-full max-w-2xl mx-auto mb-6 transform transition-all duration-700 hover:scale-105 active:scale-95 drop-shadow-[0_0_30px_rgba(234,88,12,0.3)] group-hover:drop-shadow-[0_0_50px_rgba(59,130,246,0.3)]"
+            className="w-full max-w-xl xl:max-w-2xl transform transition-all duration-700 hover:scale-105 active:scale-95 drop-shadow-[0_0_30px_rgba(234,88,12,0.3)] group-hover:drop-shadow-[0_0_50px_rgba(234,88,12,0.6)]"
+            style={{ imageRendering: 'pixelated' }}
           />
         </div>
 
-        <p className="text-xl md:text-2xl text-white/60 font-medium tracking-wide mb-12 max-w-2xl mx-auto">
-          The first fully on-chain creature battle engine built on Initia.
-          Mint. Train. Battle. Dominate.
+        <p className="text-xs md:text-sm text-white/70 font-black tracking-widest uppercase mb-8 max-w-2xl mx-auto border-y-2 border-white/10 py-3 bg-[#0a0a14]/60 backdrop-blur-sm">
+          The first fully on-chain creature battle engine built on Initia.<br/>
+          <span className="text-orange-400">▶ Mint. ▶ Train. ▶ Battle. ▶ Dominate.</span>
         </p>
 
-        <div className="flex flex-col items-center justify-center gap-8">
+        <div className="flex flex-col items-center justify-center gap-6">
           {!isConnected ? (
-            <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
-              <div className="transform scale-125 mb-4">
+            <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-500 w-full max-w-xs">
+              <div className="transform scale-110 mb-2 w-full flex justify-center">
                 <WalletConnect />
               </div>
-              
-              <div className="flex items-center gap-4 w-full opacity-30">
+
+              <div className="flex items-center gap-4 w-full opacity-40">
                 <div className="h-px flex-1 bg-white" />
-                <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Or continue without wallet</span>
+                <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Or continue without wallet</span>
                 <div className="h-px flex-1 bg-white" />
               </div>
 
               <button
                 onClick={onPlayGuest}
-                className="px-8 py-3 bg-white/5 border border-white/10 rounded-full font-bold hover:bg-white/10 transition-all text-white/50 hover:text-white flex items-center gap-2 group"
+                className="w-full px-5 py-3 bg-[#0a0a14] border-2 border-[#1a1a2e] border-b-4 border-b-black/80
+                  font-black text-[10px] uppercase tracking-widest transition-all
+                  hover:bg-[#0c0c18] hover:border-white/20 hover:text-white text-white/50
+                  flex items-center justify-center gap-3 active:border-b-2 active:translate-y-0.5 select-none"
               >
-                <span>Play as Guest (PvE)</span>
-                <ChevronRight size={14} className="group-hover:translate-x-1 transition-all opacity-0 group-hover:opacity-100" />
+                <span>▶ Play as Guest (PvE)</span>
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-8 animate-in slide-in-from-bottom-8 duration-700">
-               <div className="p-1 px-4 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Wallet Connected</span>
-               </div>
+            <div className="flex flex-col items-center gap-5 animate-in slide-in-from-bottom-8 duration-700 w-full max-w-sm">
+              <div className="px-4 py-2 bg-green-500/10 border-2 border-green-500/20 flex items-center gap-3">
+                <div className="w-2 h-2 bg-green-500 animate-pulse" style={{ imageRendering: 'pixelated' }} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Wallet Connected</span>
+              </div>
 
               <button
                 onClick={onEnter}
-                className="group flex flex-col items-center gap-4"
+                className="group flex flex-col items-center gap-3 w-full"
               >
-                <div className="px-12 py-6 bg-gradient-to-r from-orange-600 to-red-700 rounded-2xl font-black text-2xl shadow-[0_0_50px_rgba(234,88,12,0.4)] hover:shadow-[0_0_80px_rgba(234,88,12,0.6)] transition-all transform hover:-translate-y-2 active:scale-95 flex items-center gap-4">
-                  <span>ENTER THE ARENA</span>
-                  <ChevronRight size={28} className="group-hover:translate-x-2 transition-transform" />
+                <div className="w-full px-8 py-5 bg-[#e85c1a] border-2 border-[#7c2d00] border-b-8 border-b-[#451a03]
+                  font-black text-lg xl:text-xl uppercase tracking-widest text-white
+                  shadow-[0_0_50px_rgba(234,88,12,0.4)]
+                  transition-all active:border-b-2 active:mt-[6px] active:translate-y-0 select-none
+                  flex items-center justify-center gap-4 hover:brightness-110"
+                >
+                  <span style={{ textShadow: '2px 2px 0px rgba(0,0,0,0.5)' }}>ENTER THE ARENA</span>
+                  <ChevronRight size={24} className="group-hover:translate-x-2 transition-transform" />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 group-hover:opacity-100 transition-opacity">Prepare for combat</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-50 group-hover:opacity-100 transition-opacity text-orange-200">
+                  ▶ Prepare for combat
+                </span>
               </button>
             </div>
           )}
@@ -92,31 +111,31 @@ const LandingScreen: React.FC<LandingScreenProps> = ({ onEnter, onPlayGuest }) =
       </div>
 
       {/* Stats Table */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl opacity-0 animate-[fadeIn_1s_ease-out_0.5s_forwards]">
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-orange-500/10 rounded-xl text-orange-500"><Sword /></div>
-          <div>
-            <div className="text-2xl font-fantasy font-bold">247</div>
-            <div className="text-[10px] uppercase font-black text-white/40">Battles Today</div>
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4 xl:gap-6 w-full max-w-4xl opacity-0 animate-[fadeIn_1s_ease-out_0.5s_forwards]">
+        {[
+          { icon: <img src="/swords.png" alt="Battles" className="w-5 h-5 object-contain" style={{ imageRendering: 'pixelated' }} />, value: '247', label: 'Battles Today', color: 'orange-500' },
+          { icon: <Shield size={16} className="text-blue-500" />, value: '1,204', label: 'Creatures Summoned', color: 'blue-500' },
+          { icon: <Trophy size={16} className="text-yellow-500" />, value: '340 INIT', label: 'Prize Pools', color: 'yellow-500' }
+        ].map((stat, i) => (
+          <div key={i} className="bg-[#0a0a14]/80 border-2 border-[#1a1a2e] p-4 flex items-center gap-4 relative group backdrop-blur-md">
+            {/* Pixel corners */}
+            <span className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-white/10" />
+            <span className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-white/10" />
+            <span className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-white/10" />
+            <span className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-white/10" />
+            
+            <div className="w-10 h-10 bg-[#0c0c18] border-2 border-[#1a1a2e] flex items-center justify-center flex-shrink-0">
+              {stat.icon}
+            </div>
+            <div>
+              <div className="text-lg xl:text-xl font-fantasy font-black truncate">{stat.value}</div>
+              <div className="text-[8px] uppercase font-black tracking-widest text-white/40 mt-0.5">{stat.label}</div>
+            </div>
           </div>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500"><Shield /></div>
-          <div>
-            <div className="text-2xl font-fantasy font-bold">1,204</div>
-            <div className="text-[10px] uppercase font-black text-white/40">Creatures Summoned</div>
-          </div>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex items-center gap-4">
-          <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-500"><Trophy /></div>
-          <div>
-            <div className="text-2xl font-fantasy font-bold">340 INIT</div>
-            <div className="text-[10px] uppercase font-black text-white/40">Prize Pools</div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <footer className="mt-20 relative z-10 text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
+      <footer className="mt-8 mb-2 relative z-10 text-[9px] text-white/20 font-black uppercase tracking-[0.4em]">
         Built on Initia · Move VM · 2026
       </footer>
     </div>

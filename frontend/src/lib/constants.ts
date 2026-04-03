@@ -1,9 +1,9 @@
-export const CHAIN_ID = "initia-brawlers-1"
-export const RPC_URL = "http://localhost:26657"
-export const LCD_URL = "http://localhost:1317"
-export const CONTRACT_ADDRESS = "0x1"  // update after deploy
+export const CHAIN_ID = "initiation-2"
+export const RPC_URL = "https://rpc.testnet.initia.xyz"
+export const LCD_URL = "https://rest.testnet.initia.xyz"
+export const CONTRACT_ADDRESS = "init1g329dvgxpqf6c6umly9q8g6643v3ecf3c8nqty"
 
-export const ELEMENTS = ['Fire', 'Water', 'Earth', 'Wind', 'Shadow'] as const
+export const ELEMENTS = ['Fire', 'Water', 'Earth'] as const
 export const RARITIES = ['Common', 'Rare', 'Epic', 'Legendary'] as const
 
 // Element colours for UI
@@ -11,8 +11,6 @@ export const ELEMENT_COLORS: Record<string, string> = {
   Fire:   '#FF4D00',
   Water:  '#0EA5E9',
   Earth:  '#84CC16',
-  Wind:   '#A78BFA',
-  Shadow: '#6B7280',
 }
 
 // Rarity colours
@@ -24,14 +22,14 @@ export const RARITY_COLORS: Record<string, string> = {
 }
 
 export const MOVE_DESCRIPTIONS = {
-  Attack:      { label: 'Attack',       emoji: '⚔️',  desc: 'Standard strike' },
-  HeavyAttack: { label: 'Heavy Attack', emoji: '💥',  desc: '1.8× power, may miss' },
-  Defend:      { label: 'Defend',       emoji: '🛡️', desc: 'Block + heal 5%' },
-  Special:     { label: 'Special',      emoji: '✨',  desc: 'Elemental burst, costs HP' },
+  Attack:      { label: 'Attack',       emoji: '⚔️',  image: '/sword.png',  desc: 'Moderate damage, zero risk' },
+  HeavyAttack: { label: 'Heavy Attack', emoji: '💥',  image: '/bomb.png',   desc: '1.8× power, 30% miss chance, recoil on miss' },
+  Defend:      { label: 'Defend',       emoji: '🛡️',  image: '/defend.png',  desc: '50% reduction + 8% heal' },
+  Special:     { label: 'Special',      emoji: '✨',  image: '/bolt.png',   desc: 'High damage + Elemental Buff (costs 10% HP)' },
 }
 
 export const BOT_NAMES = [
-  'Bot Flambo', 'Bot Aquara', 'Bot Stonk', 'Bot Gale', 'Bot Shade'
+  'Bot Flambo', 'Bot Aquara', 'Bot Stonk'
 ]
 
-export const MOCK_MODE = false // Set true only if running without a node
+export const MOCK_MODE = false // Actual game mode enabled!

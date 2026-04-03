@@ -1,7 +1,7 @@
 import { RESTClient } from "@initia/initia.js";
-import { RPC_URL, CHAIN_ID } from "./constants";
+import { LCD_URL, CHAIN_ID } from "./constants";
 
-export const initiaClient = new RESTClient(RPC_URL, {
+export const initiaClient = new RESTClient(LCD_URL, {
   chainId: CHAIN_ID,
   gasPrices: "0.15uinit",
   gasAdjustment: "1.4",

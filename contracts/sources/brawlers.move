@@ -3,11 +3,8 @@ module initia_brawlers::brawlers {
     use std::vector;
     use initia_std::table::{Self, Table};
     use initia_std::signer;
-    use initia_std::coin;
-
-    // --- COSMOS COIN ---
-    // Use uinit for matching Initia's native fee token
-    const UINIT: String = b"uinit";
+ 
+    friend initia_brawlers::battle;
 
     // --- CONSTANTS ---
     const MAX_LEVEL: u64 = 20;
@@ -18,6 +15,7 @@ module initia_brawlers::brawlers {
     const E_NOT_INITIALIZED: u64 = 2;
     const E_INVENTORY_FULL: u64 = 3;
     const E_INSUFFICIENT_FUNDS: u64 = 4;
+    const E_CREATURE_NOT_FOUND: u64 = 5;
 
     struct Creature has store, copy, drop {
         id: u64,
@@ -40,6 +38,7 @@ module initia_brawlers::brawlers {
     struct Registry has key {
         creatures: Table<address, vector<Creature>>,
         usernames: Table<address, String>,
+        registered_players: vector<address>,
         total_mints: u64,
     }
 
@@ -49,6 +48,7 @@ module initia_brawlers::brawlers {
         move_to(account, Registry {
             creatures: table::new(),
             usernames: table::new(),
+            registered_players: vector::empty(),
             total_mints: 0,
         });
     }
@@ -70,6 +70,7 @@ module initia_brawlers::brawlers {
 
         if (!table::contains(&registry.creatures, addr)) {
             table::add(&mut registry.creatures, addr, vector::empty());
+            vector::push_back(&mut registry.registered_players, addr);
         };
 
         let inventory = table::borrow_mut(&mut registry.creatures, addr);
@@ -148,6 +149,11 @@ module initia_brawlers::brawlers {
     }
 
     #[view]
+    public fun get_all_players(): vector<address> acquires Registry {
+        borrow_global<Registry>(@initia_brawlers).registered_players
+    }
+
+    #[view]
     public fun get_creature(owner: address, creature_id: u64): Creature acquires Registry {
         let registry = borrow_global<Registry>(@initia_brawlers);
         let inventory = table::borrow(&registry.creatures, owner);
@@ -162,6 +168,26 @@ module initia_brawlers::brawlers {
     }
 
     // --- INTERNAL LOGIC (for battle module only) ---
+
+    public entry fun release_creature(account: &signer, creature_id: u64) acquires Registry {
+        let addr = signer::address_of(account);
+        let registry = borrow_global_mut<Registry>(@initia_brawlers);
+        assert!(table::contains(&registry.creatures, addr), E_NOT_INITIALIZED);
+
+        let inventory = table::borrow_mut(&mut registry.creatures, addr);
+        let len = vector::length(inventory);
+        let i = 0;
+        let found = false;
+        while (i < len) {
+            if (vector::borrow(inventory, i).id == creature_id) {
+                vector::remove(inventory, i);
+                found = true;
+                break
+            };
+            i = i + 1;
+        };
+        assert!(found, E_CREATURE_NOT_FOUND);
+    }
 
     public(friend) fun add_xp(owner: address, creature_id: u64, amount: u64, is_win: bool) acquires Registry {
         let registry = borrow_global_mut<Registry>(@initia_brawlers);

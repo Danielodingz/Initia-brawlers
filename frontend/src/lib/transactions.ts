@@ -2,31 +2,30 @@ import { calculateFee, GasPrice } from '@cosmjs/stargate'
 import { CONTRACT_ADDRESS } from './constants'
 
 // ── BCS ENCODING HELPERS ──
-// Initia Move args must be BCS encoded as base64 strings
-// Use @initia/initia.js BCS utilities
+// Initia Move args must be BCS encoded Uint8Arrays for CosmJS protobuf
 
-function encodeU64(value: number): string {
+export function encodeU64(value: number): Uint8Array {
   const buf = new ArrayBuffer(8)
   const view = new DataView(buf)
   view.setBigUint64(0, BigInt(value), true) // little-endian
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+  return new Uint8Array(buf)
 }
 
-function encodeU8(value: number): string {
-  return btoa(String.fromCharCode(value))
+function encodeU8(value: number): Uint8Array {
+  return new Uint8Array([value])
 }
 
-function encodeString(value: string): string {
+function encodeString(value: string): Uint8Array {
   const bytes = new TextEncoder().encode(value)
   const lenPrefix = new Uint8Array([(bytes.length & 0xFF)])
   const combined = new Uint8Array(lenPrefix.length + bytes.length)
   combined.set(lenPrefix)
   combined.set(bytes, lenPrefix.length)
-  return btoa(String.fromCharCode(...combined))
+  return combined
 }
 
-function encodeBool(value: boolean): string {
-  return btoa(String.fromCharCode(value ? 1 : 0))
+function encodeBool(value: boolean): Uint8Array {
+  return new Uint8Array([value ? 1 : 0])
 }
 
 // ── MOVE MESSAGE BUILDER ──
@@ -34,7 +33,7 @@ function moveMsg(
   sender: string,
   moduleName: string,
   functionName: string,
-  args: string[] = [],
+  args: Uint8Array[] = [],
   typeArgs: string[] = []
 ) {
   return {
@@ -75,6 +74,12 @@ export function buildSetUsername(sender: string, username: string) {
   ])
 }
 
+export function buildReleaseCreature(sender: string, creatureId: number) {
+  return moveMsg(sender, 'brawlers', 'release_creature', [
+    encodeU64(creatureId),
+  ])
+}
+
 // ══════════════════════════════════════
 // BATTLE TRANSACTIONS
 // ══════════════════════════════════════
@@ -82,10 +87,12 @@ export function buildSetUsername(sender: string, username: string) {
 export function buildStartPveBattle(
   sender: string,
   creatureId: number,
+  creatureMaxHp: number,
   botDifficulty: number,  // 0=Easy,1=Medium,2=Hard
 ) {
   return moveMsg(sender, 'battle', 'start_pve_battle', [
     encodeU64(creatureId),
+    encodeU64(creatureMaxHp),
     encodeU8(botDifficulty),
   ])
 }
@@ -94,10 +101,12 @@ export function buildChallengePlayer(
   sender: string,
   creatureId: number,
   opponent: string,
+  wager: number,
 ) {
   return moveMsg(sender, 'battle', 'challenge_player', [
     encodeU64(creatureId),
     encodeString(opponent),
+    encodeU64(wager),
   ])
 }
 
@@ -105,10 +114,12 @@ export function buildAcceptChallenge(
   sender: string,
   battleId: number,
   creatureId: number,
+  creatureMaxHp: number,
 ) {
   return moveMsg(sender, 'battle', 'accept_challenge', [
     encodeU64(battleId),
     encodeU64(creatureId),
+    encodeU64(creatureMaxHp),
   ])
 }
 
@@ -128,13 +139,32 @@ export function buildSubmitMove(
 // TOURNAMENT TRANSACTIONS
 // ══════════════════════════════════════
 
+export function buildCreateTournament(
+  sender: string,
+  name: string,
+  entryFee: number, // in uinit
+) {
+  // name_bytes is vector<u8> (bcs encoded string)
+  const nameBytes = new TextEncoder().encode(name)
+  // BCS vector prefix is length
+  const bcsVector = new Uint8Array(1 + nameBytes.length)
+  bcsVector[0] = nameBytes.length
+  bcsVector.set(nameBytes, 1)
+
+  return moveMsg(sender, 'tournament', 'create_tournament', [
+    bcsVector,
+    encodeU64(entryFee),
+  ])
+}
+
 export function buildEnterTournament(
   sender: string,
+  tournamentId: number,
   creatureId: number,
 ) {
   return moveMsg(sender, 'tournament', 'enter_tournament', [
+    encodeU64(tournamentId),
     encodeU64(creatureId),
-    encodeU64(2_000_000), // 2 INIT entry fee in uINIT
   ])
 }
 

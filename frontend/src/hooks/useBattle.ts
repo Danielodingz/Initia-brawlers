@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useInterwovenKit } from './useInterwovenKit'
 import { useAutoSign } from './useAutoSign'
-import { buildStartPveBattle, buildChallengePlayer, buildAcceptChallenge } from '../lib/transactions'
+import { buildStartPveBattle, buildChallengePlayer, buildAcceptChallenge, encodeU64, buildSubmitMove } from '../lib/transactions'
 import { LCD_URL, CONTRACT_ADDRESS, MOCK_MODE } from '../lib/constants'
 import type { ActiveBattle, MoveType } from '../lib/types'
 
@@ -27,7 +27,7 @@ export function useBattle(battleId: number | null) {
           body: JSON.stringify({
             function_name: 'get_battle',
             type_args: [],
-            args: [btoa(String.fromCharCode(battleId))],
+            args: [btoa(String.fromCharCode(...encodeU64(battleId)))],
           }),
         }
       )
@@ -39,26 +39,52 @@ export function useBattle(battleId: number | null) {
   })
 
   // Start PvE battle
-  const startPve = async (creatureId: number, difficulty: number) => {
+  const startPve = async (creatureId: number, maxHp: number, difficulty: number) => {
     if (MOCK_MODE) return { transactionHash: 'mock_hash' }
     if (!address) throw new Error('Not connected')
-    const message = buildStartPveBattle(address, creatureId, difficulty)
+    const message = buildStartPveBattle(address, creatureId, maxHp, difficulty)
     return await requestTxBlock({ messages: [message] })
   }
 
+  // Get current total battles (used to find latest ID)
+  const getTotalBattles = async () => {
+    if (MOCK_MODE) return 0
+    try {
+      const res = await fetch(
+        `${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            function_name: 'get_total_battles',
+            type_args: [],
+            args: [],
+          }),
+        }
+      )
+      const data = await res.json()
+      if (!data || data.data === undefined) return 0
+      const count = Number(data.data)
+      return isNaN(count) ? 0 : count
+    } catch (err) {
+      console.error('Failed to get total battles:', err)
+      return 0
+    }
+  }
+
   // Challenge a player
-  const challengePlayer = async (creatureId: number, opponent: string) => {
+  const createChallenge = async (creatureId: number, opponent: string, wager: number) => {
     if (MOCK_MODE) return { transactionHash: 'mock_hash' }
     if (!address) throw new Error('Not connected')
-    const message = buildChallengePlayer(address, creatureId, opponent)
+    const message = buildChallengePlayer(address, creatureId, opponent, wager)
     return await requestTxBlock({ messages: [message] })
   }
 
   // Accept a challenge
-  const acceptChallenge = async (bId: number, creatureId: number) => {
+  const acceptChallenge = async (bId: number, creatureId: number, creatureMaxHp: number) => {
     if (MOCK_MODE) return { transactionHash: 'mock_hash' }
     if (!address) throw new Error('Not connected')
-    const message = buildAcceptChallenge(address, bId, creatureId)
+    const message = buildAcceptChallenge(address, bId, creatureId, creatureMaxHp)
     return await requestTxBlock({ messages: [message] })
   }
 
@@ -76,7 +102,8 @@ export function useBattle(battleId: number | null) {
     isLoading,
     submitMove,
     startPve,
-    challengePlayer,
+    getTotalBattles,
+    createChallenge,
     acceptChallenge,
     sessionActive,
   }
@@ -99,6 +126,7 @@ function parseBattleFromChain(data: any): ActiveBattle | null {
     winner: data.winner || null,
     isPve: Boolean(data.is_pve),
     botDifficulty: Number(data.bot_difficulty),
+    wager: Number(data.wager) / 1_000_000,
     battleLog: data.battle_log ?? [],
   }
 }

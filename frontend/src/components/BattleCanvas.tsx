@@ -1,7 +1,31 @@
 import React, { useRef, useEffect } from 'react'
+import { Creature } from '../lib/types'
+import { getCreatureImage } from '../lib/assets'
 
-const BattleCanvas: React.FC = () => {
+interface BattleCanvasProps {
+  playerCreature?: Creature;
+  botCreature?: Creature;
+  isAnimating?: boolean;
+}
+
+const BattleCanvas: React.FC<BattleCanvasProps> = ({ playerCreature, botCreature, isAnimating }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const playerImgRef = useRef<HTMLImageElement | null>(null)
+  const botImgRef = useRef<HTMLImageElement | null>(null)
+
+  // Preload images
+  useEffect(() => {
+    if (playerCreature) {
+      const img = new Image()
+      img.src = getCreatureImage(playerCreature.element)
+      img.onload = () => { playerImgRef.current = img }
+    }
+    if (botCreature) {
+      const img = new Image()
+      img.src = getCreatureImage(botCreature.element)
+      img.onload = () => { botImgRef.current = img }
+    }
+  }, [playerCreature, botCreature])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -21,74 +45,60 @@ const BattleCanvas: React.FC = () => {
 
       // Draw Arena Background
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
-      gradient.addColorStop(0, '#0A0A15')
-      gradient.addColorStop(0.7, '#151525')
-      gradient.addColorStop(1, '#050510')
+      gradient.addColorStop(0, 'rgba(10, 10, 21, 0)')
+      gradient.addColorStop(0.7, 'rgba(21, 21, 37, 0.2)')
+      gradient.addColorStop(1, 'rgba(5, 5, 16, 0)')
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // Draw Ground
-      ctx.beginPath()
-      ctx.moveTo(0, canvas.height * 0.7)
-      ctx.lineTo(canvas.width, canvas.height * 0.7)
-      ctx.strokeStyle = 'rgba(255,100,0,0.2)'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
       // Float animation value
       const floatOffset = Math.sin(frame * 0.05) * 10
+      const enemyFloatOffset = Math.sin(frame * 0.04) * 8
 
       // Draw Player Creature (Left)
-      ctx.save()
-      ctx.translate(canvas.width * 0.2, canvas.height * 0.6 + floatOffset)
-      
-      // Shadow
-      ctx.beginPath()
-      ctx.ellipse(0, 40 - floatOffset, 30, 10, 0, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'
-      ctx.fill()
+      if (playerImgRef.current) {
+        ctx.save()
+        ctx.translate(canvas.width * 0.25, canvas.height * 0.55 + floatOffset)
+        
+        // Shadow
+        ctx.beginPath()
+        ctx.ellipse(0, 80 - floatOffset, 40, 12, 0, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'
+        ctx.fill()
 
-      // Body (Orange Glow for Fire)
-      ctx.beginPath()
-      ctx.arc(0, 0, 35, 0, Math.PI * 2)
-      ctx.fillStyle = '#EA580C'
-      ctx.shadowBlur = 20
-      ctx.shadowColor = '#EA580C'
-      ctx.fill()
-      
-      // Eyes
-      ctx.fillStyle = 'white'
-      ctx.fillRect(10, -10, 6, 6)
-      ctx.fillRect(25, -10, 6, 6)
-      ctx.restore()
+        // Image
+        const img = playerImgRef.current
+        const scale = 140
+        ctx.drawImage(img, -scale/2, -scale/2, scale, scale)
+        
+        // Attacking animation
+        if (isAnimating) {
+           // Add a simple shake or lunge
+        }
+        
+        ctx.restore()
+      }
 
       // Draw Enemy Creature (Right)
-      ctx.save()
-      ctx.translate(canvas.width * 0.8, canvas.height * 0.6 + Math.sin(frame * 0.04) * 8)
-      
-      // Shadow
-      ctx.beginPath()
-      ctx.ellipse(0, 40 - (Math.sin(frame * 0.04) * 8), 30, 10, 0, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'
-      ctx.fill()
+      if (botImgRef.current) {
+        ctx.save()
+        ctx.translate(canvas.width * 0.75, canvas.height * 0.55 + enemyFloatOffset)
+        
+        // Flip for enemy
+        ctx.scale(-1, 1)
 
-      // Body (Blue for opponent/water)
-      ctx.beginPath()
-      ctx.arc(0, 0, 35, 0, Math.PI * 2)
-      ctx.fillStyle = '#0284C7'
-      ctx.shadowBlur = 20
-      ctx.shadowColor = '#0284C7'
-      ctx.fill()
-      
-      // Eyes (facing left)
-      ctx.fillStyle = 'white'
-      ctx.fillRect(-16, -10, 6, 6)
-      ctx.fillRect(-31, -10, 6, 6)
-      ctx.restore()
+        // Shadow
+        ctx.beginPath()
+        ctx.ellipse(0, 80 - enemyFloatOffset, 40, 12, 0, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'
+        ctx.fill()
 
-      // Draw Particles/Vibe
-      if (frame % 10 === 0) {
-        // Just ambient dust for now
+        // Image
+        const img = botImgRef.current
+        const scale = 140
+        ctx.drawImage(img, -scale/2, -scale/2, scale, scale)
+        
+        ctx.restore()
       }
 
       animationFrameId = requestAnimationFrame(render)
@@ -99,10 +109,13 @@ const BattleCanvas: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId)
     }
-  }, [])
+  }, [isAnimating])
 
   return (
-    <div className="w-full max-w-4xl aspect-[2/1] bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+    <div className="w-full max-w-4xl aspect-[2/1] rounded-3xl overflow-hidden relative">
+      {/* Grid Overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none" />
+      
       <canvas 
         ref={canvasRef} 
         width={800} 
