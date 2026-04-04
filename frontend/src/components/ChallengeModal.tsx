@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Search, Coins, Trophy, Zap } from 'lucide-react'
 import { useBattle } from '../hooks/useBattle'
 import { LCD_URL, CONTRACT_ADDRESS } from '../lib/constants'
+import ConfirmModal from './ConfirmModal'
 
 interface ChallengeModalProps {
   creatureId: number;
@@ -9,11 +10,18 @@ interface ChallengeModalProps {
   onChallengeStarted: (battleId: number) => void;
 }
 
+interface Player {
+  address: string;
+  username: string;
+  isOnline: boolean;
+}
+
 const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, onChallengeStarted }) => {
-  const [players, setPlayers] = useState<string[]>([])
+  const [players, setPlayers] = useState<Player[]>([])
   const [search, setSearch] = useState('')
   const [wager, setWager] = useState('1.0')
   const [isLoading, setIsLoading] = useState(false)
+  const [alertConfig, setAlertConfig] = useState<{ title: string; message: string; variant: 'danger' | 'warning' | 'info' } | null>(null)
   const { createChallenge } = useBattle(null)
 
   useEffect(() => {
@@ -29,7 +37,32 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, on
           }),
         })
         const data = await res.json()
-        if (data.data) setPlayers(data.data)
+        const addrs: string[] = data.data || []
+
+        // Fetch usernames for each player
+        const playersWithNames = await Promise.all(addrs.map(async (addr) => {
+          try {
+            const nameRes = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                function_name: 'get_username',
+                type_args: [],
+                args: [addr],
+              }),
+            })
+            const nameData = await nameRes.json()
+            return {
+              address: addr,
+              username: nameData.data || '',
+              isOnline: true // Simulated for now
+            }
+          } catch {
+            return { address: addr, username: '', isOnline: true }
+          }
+        }))
+
+        setPlayers(playersWithNames)
       } catch (err) {
         console.error("Failed to fetch players:", err)
       }
@@ -42,17 +75,26 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, on
     try {
       const uinitWager = parseFloat(wager) * 1_000_000
       await createChallenge(creatureId, opponent, Math.floor(uinitWager))
-      // In a real app, we'd parse the battleId from events
-      alert("Challenge sent! Wait for your opponent to accept.")
-      onClose()
+      setAlertConfig({
+        title: 'Challenge Sent',
+        message: 'Your challenge has been broadcasted! Wait for your opponent to accept.',
+        variant: 'info'
+      })
     } catch (err: any) {
-      alert(`Challenge failed: ${err?.message}`)
+      setAlertConfig({
+        title: 'Challenge Failed',
+        message: err?.message || 'Failed to send challenge.',
+        variant: 'danger'
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const filteredPlayers = players.filter(p => p.toLowerCase().includes(search.toLowerCase()))
+  const filteredPlayers = players.filter(p => 
+    p.address.toLowerCase().includes(search.toLowerCase()) || 
+    p.username.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-black/85 animate-in fade-in duration-200">
@@ -139,7 +181,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, on
             <Search className="absolute left-4 text-white/20" size={14} />
             <input
               type="text"
-              placeholder="SEARCH BY WALLET ADDRESS..."
+              placeholder="SEARCH BY NAME OR WALLET..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent py-3 pl-10 pr-4 text-[10px] font-black tracking-widest uppercase text-white focus:outline-none placeholder:text-white/15"
@@ -150,22 +192,32 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, on
         {/* ── Player List ───────────────────────── */}
         <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-5 pt-2 space-y-3 custom-scrollbar">
           {filteredPlayers.length > 0 ? (
-            filteredPlayers.map((addr) => (
+            filteredPlayers.map((player) => (
               <button
-                key={addr}
-                onClick={() => handleChallenge(addr)}
+                key={player.address}
+                onClick={() => handleChallenge(player.address)}
                 disabled={isLoading}
                 className="w-full p-4 bg-[#0c0c18] border-2 border-[#1a1a2e] border-b-4 border-b-black
                   flex items-center justify-between group transition-all
                   hover:bg-[#10101c] hover:border-orange-500/30 active:border-b-2 active:translate-y-0.5"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 border-2 border-[#1a1a2e] bg-[#08080f] flex items-center justify-center text-orange-500 font-black text-[10px]">
-                    {addr.slice(-2).toUpperCase()}
+                  <div className="w-8 h-8 border-2 border-[#1a1a2e] bg-[#08080f] flex items-center justify-center text-orange-500 font-black text-[10px] relative">
+                    {player.address.slice(-2).toUpperCase()}
+                    {player.isOnline && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 border border-black" />
+                    )}
                   </div>
                   <div className="text-left">
-                    <div className="text-[11px] font-bold font-mono text-white/80">{addr.slice(0, 8)}...{addr.slice(-6)}</div>
-                    <div className="text-[8px] font-black uppercase tracking-widest text-white/30 mt-1">▶ Active Player</div>
+                    <div className="text-[11px] font-bold font-mono text-white/80">
+                      {player.username ? `${player.username}.init` : `${player.address.slice(0, 8)}...${player.address.slice(-6)}`}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="text-[8px] font-black uppercase tracking-widest text-green-400 group-hover:animate-pulse">▶ Battle Ready</div>
+                      {player.username && (
+                         <div className="text-[7px] font-mono text-white/20">{player.address.slice(0, 8)}...</div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="w-8 h-8 border-2 border-[#1a1a2e] bg-[#08080f] group-hover:bg-orange-500/20 group-hover:border-orange-500/40 text-orange-500 flex items-center justify-center transition-all opacity-40 group-hover:opacity-100">
@@ -193,6 +245,17 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ creatureId, onClose, on
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!alertConfig}
+        title={alertConfig?.title || 'System Message'}
+        message={alertConfig?.message || ''}
+        variant={alertConfig?.variant || 'info'}
+        onConfirm={() => {
+          if (alertConfig?.title === 'Challenge Sent') onClose()
+          setAlertConfig(null)
+        }}
+      />
     </div>
   )
 }

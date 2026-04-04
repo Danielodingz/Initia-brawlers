@@ -154,6 +154,16 @@ module initia_brawlers::brawlers {
     }
 
     #[view]
+    public fun get_username(owner: address): String acquires Registry {
+        let registry = borrow_global<Registry>(@initia_brawlers);
+        if (table::contains(&registry.usernames, owner)) {
+            *table::borrow(&registry.usernames, owner)
+        } else {
+            std::string::utf8(b"")
+        }
+    }
+
+    #[view]
     public fun get_creature(owner: address, creature_id: u64): Creature acquires Registry {
         let registry = borrow_global<Registry>(@initia_brawlers);
         let inventory = table::borrow(&registry.creatures, owner);

@@ -3,6 +3,7 @@ import CreatureCard from './CreatureCard'
 import WalletConnect from './WalletConnect'
 import ChallengeModal from './ChallengeModal'
 import ChallengeNotifications from './ChallengeNotifications'
+import ConfirmModal from './ConfirmModal'
 import { useCreature } from '../hooks/useCreature'
 import { useBattle } from '../hooks/useBattle'
 import { Plus, Trophy, BarChart3, Zap, ChevronRight } from 'lucide-react'
@@ -28,20 +29,41 @@ const StableScreen: React.FC<StableScreenProps> = ({
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [showChallengeModal, setShowChallengeModal] = useState(false)
   const [isAcceptingChallenge, setIsAcceptingChallenge] = useState(false)
+  const [isConfirmingRelease, setIsConfirmingRelease] = useState(false)
+  const [creatureToRelease, setCreatureToRelease] = useState<number | null>(null)
+  const [alertConfig, setAlertConfig] = useState<{ title: string; message: string; variant: 'danger' | 'warning' | 'info' } | null>(null)
 
-  const handleRelease = async (id: number) => {
-    if (window.confirm('Release this brawler? This cannot be undone.')) {
-      try {
-        await releaseCreature(id)
-        if (selectedId === id) setSelectedId(null)
-      } catch (err: any) {
-        alert(`Failed to release: ${err?.message || 'Unknown error'}`)
-      }
+  const handleRelease = (id: number) => {
+    setCreatureToRelease(id)
+    setIsConfirmingRelease(true)
+  }
+
+  const confirmRelease = async () => {
+    if (!creatureToRelease) return
+    setIsConfirmingRelease(false)
+    try {
+      await releaseCreature(creatureToRelease)
+      if (selectedId === creatureToRelease) setSelectedId(null)
+    } catch (err: any) {
+      setAlertConfig({
+        title: 'Release Failed',
+        message: err?.message || 'Unknown error occurred during release.',
+        variant: 'danger'
+      })
+    } finally {
+      setCreatureToRelease(null)
     }
   }
 
   const handleAcceptChallenge = async (battleId: number) => {
-    if (!selectedId) { alert('Select a brawler first!'); return }
+    if (!selectedId) {
+      setAlertConfig({
+        title: 'Selection Required',
+        message: 'Please select a brawler from your stable before accepting a challenge.',
+        variant: 'warning'
+      })
+      return
+    }
     const creature = creatures?.find(c => c.id === selectedId)
     if (!creature) return
     setIsAcceptingChallenge(true)
@@ -49,7 +71,11 @@ const StableScreen: React.FC<StableScreenProps> = ({
       await acceptChallenge(battleId, creature.id, creature.maxHp)
       onStartBattle(battleId, creature.id)
     } catch (err: any) {
-      alert(`Accept failed: ${err?.message}`)
+      setAlertConfig({
+        title: 'Accept Failed',
+        message: err?.message || 'Failed to accept the challenge.',
+        variant: 'danger'
+      })
     } finally {
       setIsAcceptingChallenge(false)
     }
@@ -278,6 +304,25 @@ const StableScreen: React.FC<StableScreenProps> = ({
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={isConfirmingRelease}
+        title="Release Brawler"
+        message="Are you sure you want to release this brawler? This action is permanent and cannot be undone."
+        confirmText="RELEASE"
+        cancelText="CANCEL"
+        variant="danger"
+        onConfirm={confirmRelease}
+        onCancel={() => { setIsConfirmingRelease(false); setCreatureToRelease(null) }}
+      />
+
+      <ConfirmModal
+        isOpen={!!alertConfig}
+        title={alertConfig?.title || 'System Message'}
+        message={alertConfig?.message || ''}
+        variant={alertConfig?.variant || 'info'}
+        onConfirm={() => setAlertConfig(null)}
+      />
     </div>
   )
 }

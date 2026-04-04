@@ -2,7 +2,7 @@ module initia_brawlers::battle {
     use std::vector;
     use initia_std::signer;
     use initia_std::table::{Self, Table};
-    use initia_std::native_coin;
+    use initia_brawlers::native_coin;
     use initia_brawlers::brawlers;
 
     // --- CONSTANTS ---

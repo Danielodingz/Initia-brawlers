@@ -45,9 +45,22 @@ export function useLeaderboard() {
             highestLevel = Math.max(highestLevel, Number(c.level));
           });
 
+          // Fetch real username
+          const nameRes = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              function_name: 'get_username',
+              type_args: [],
+              args: [addr],
+            }),
+          });
+          const nameData = await nameRes.json();
+          const username = nameData.data || `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+
           return {
             address: addr,
-            username: `${addr.slice(0, 6)}...${addr.slice(-4)}`,
+            username,
             totalBattles,
             totalWins,
             tournamentWins: 0,

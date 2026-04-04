@@ -6,6 +6,7 @@ import { LCD_URL, CONTRACT_ADDRESS } from '../lib/constants'
 interface PendingBattle {
   battleId: number;
   player1: string;
+  username: string;
   wager: number;
 }
 
@@ -47,16 +48,31 @@ const ChallengeNotifications: React.FC<ChallengeNotificationsProps> = ({ onAccep
             }),
           });
           const d = await res.json();
-          return d.data;
+          const battle = d.data;
+
+          if (battle && battle.player2 === address) {
+            // Fetch username for player1
+            const nameRes = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                function_name: 'get_username',
+                type_args: [],
+                args: [battle.player1],
+              }),
+            });
+            const nameData = await nameRes.json();
+            return {
+              battleId: Number(battle.battle_id),
+              player1: battle.player1,
+              username: nameData.data || '',
+              wager: Number(battle.wager) / 1_000_000,
+            };
+          }
+          return null;
         }));
 
-        const filtered = details
-          .filter(d => d && d.player2 === address)
-          .map(d => ({
-            battleId: Number(d.battle_id),
-            player1: d.player1,
-            wager: Number(d.wager) / 1_000_000,
-          }));
+        const filtered = details.filter((d): d is PendingBattle & { username: string } => d !== null);
 
         setChallenges(filtered);
       } catch (err) {
@@ -82,17 +98,17 @@ const ChallengeNotifications: React.FC<ChallengeNotificationsProps> = ({ onAccep
              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
                 <Trophy size={20} />
              </div>
-             <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-orange-200">New Duel Challenge!</div>
-                <div className="text-sm font-bold text-white flex items-center gap-2">
-                   {c.player1.slice(0, 6)}...{c.player1.slice(-4)}
-                   <span className="text-orange-900/50 scale-125 mx-1">/</span>
-                   <div className="flex items-center gap-1 text-orange-100 italic">
-                      <Coins size={12} fill="currentColor" />
-                      {c.wager} INIT
-                   </div>
-                </div>
-             </div>
+              <div>
+                 <div className="text-[10px] font-black uppercase tracking-widest text-orange-200">New Duel Challenge!</div>
+                 <div className="text-sm font-bold text-white flex items-center gap-2">
+                    {c.username ? `${c.username}.init` : `${c.player1.slice(0, 6)}...${c.player1.slice(-4)}`}
+                    <span className="text-orange-900/50 scale-125 mx-1">/</span>
+                    <div className="flex items-center gap-1 text-orange-100 italic">
+                       <Coins size={12} fill="currentColor" />
+                       {c.wager} INIT
+                    </div>
+                 </div>
+              </div>
           </div>
 
           <button 

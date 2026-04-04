@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { X, Trophy, Coins, Zap, Shield, Sparkles } from 'lucide-react'
 import { useTournament } from '../hooks/useTournament'
+import ConfirmModal from './ConfirmModal'
 
 interface CreateTournamentModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({ onClose, 
   const [name, setName] = useState('Initia Brawler Cup')
   const [fee, setFee] = useState('2.0')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [alertConfig, setAlertConfig] = useState<{ title: string; message: string; variant: 'danger' | 'warning' | 'info' } | null>(null)
   const { createTournament } = useTournament()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,10 +20,17 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({ onClose, 
     setIsSubmitting(true)
     try {
       await createTournament(name, parseFloat(fee))
-      alert('Championship hosted successfully!')
-      onCreated(Math.floor(Math.random() * 1000))
+      setAlertConfig({
+        title: 'Championship Created',
+        message: 'Your tournament has been initialized and is now open for registration!',
+        variant: 'info'
+      })
     } catch (err: any) {
-      alert(`Hosting failed: ${err?.message}`)
+      setAlertConfig({
+        title: 'Creation Failed',
+        message: err?.message || 'Failed to create the tournament.',
+        variant: 'danger'
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -169,6 +178,17 @@ const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({ onClose, 
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        isOpen={!!alertConfig}
+        title={alertConfig?.title || 'System Message'}
+        message={alertConfig?.message || ''}
+        variant={alertConfig?.variant || 'info'}
+        onConfirm={() => {
+          if (alertConfig?.title === 'Championship Created') onCreated(Math.floor(Math.random() * 1000))
+          setAlertConfig(null)
+        }}
+      />
     </div>
   )
 }

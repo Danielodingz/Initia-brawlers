@@ -3,6 +3,7 @@ import { Trophy, Plus, Users, Coins, Swords, Sparkles, ChevronLeft } from 'lucid
 import { useTournament } from '../hooks/useTournament'
 import { Creature } from '../lib/types'
 import CreateTournamentModal from './CreateTournamentModal'
+import ConfirmModal from './ConfirmModal'
 
 interface TournamentDashboardProps {
   onBack: () => void;
@@ -14,19 +15,32 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onVie
   const { tournaments, isLoading, joinTournament } = useTournament()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [joiningId, setJoiningId] = useState<number | null>(null)
+  const [alertConfig, setAlertConfig] = useState<{ title: string; message: string; variant: 'danger' | 'warning' | 'info' } | null>(null)
 
   const handleJoin = async (id: number) => {
     if (!creatures || creatures.length === 0) {
-      alert('You need a brawler to enter! Summon one first.')
+      setAlertConfig({
+        title: 'Brawler Required',
+        message: 'You need an active brawler to enter this championship! Summon one from the stable first.',
+        variant: 'warning'
+      })
       return
     }
     const creature = creatures[0]
     setJoiningId(id)
     try {
       await joinTournament(id, creature.id)
-      alert('Entered tournament successfully! Wait for it to become ACTIVE.')
+      setAlertConfig({
+        title: 'Entry Confirmed',
+        message: 'You have successfully entered the tournament! Wait for 8 players to join to begin.',
+        variant: 'info'
+      })
     } catch (err: any) {
-      alert(`Join failed: ${err?.message}`)
+      setAlertConfig({
+        title: 'Entry Failed',
+        message: err?.message || 'Failed to join the tournament.',
+        variant: 'danger'
+      })
     } finally {
       setJoiningId(null)
     }
@@ -274,6 +288,14 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onVie
           onCreated={(_id: number) => setShowCreateModal(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!alertConfig}
+        title={alertConfig?.title || 'System Message'}
+        message={alertConfig?.message || ''}
+        variant={alertConfig?.variant || 'info'}
+        onConfirm={() => setAlertConfig(null)}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@ module initia_brawlers::tournament {
     use std::string::{Self, String};
     use initia_std::signer;
     use initia_std::table::{Self, Table};
-    use initia_std::native_coin;
+    use initia_brawlers::native_coin;
 
     const STATE_OPEN: u8 = 0;
     const STATE_ACTIVE: u8 = 1;
