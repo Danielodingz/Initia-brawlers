@@ -139,26 +139,31 @@ const StoreScreen: React.FC<StoreScreenProps> = ({ onBack }) => {
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* ── HEADER ──────────────────────────────────────────── */}
-      <header className="relative z-30 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-6 py-0 flex items-stretch justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 pr-6 border-r-2 border-[#1a1a2e] text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Back
-        </button>
+      <header className="relative z-30 bg-[#0a0a14] border-b-2 border-[#1a1a2e] flex flex-col md:flex-row items-stretch justify-between">
+        
+        {/* Top/Left Section */}
+        <div className="flex items-stretch justify-between md:justify-start border-b-2 md:border-b-0 border-[#1a1a2e]">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 px-4 md:px-6 py-3 md:py-0 border-r-2 border-[#1a1a2e] text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={14} />
+            <span className="hidden sm:inline">Back</span>
+          </button>
 
-        <div className="flex items-center gap-3 px-6">
-          <div className="p-1.5 bg-orange-500/10 border border-orange-500/20">
-            <ShoppingBag size={16} className="text-orange-400" />
-          </div>
-          <div>
-            <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Training HQ</div>
-            <div className="font-fantasy font-bold text-sm uppercase tracking-wider">Brawlers Store</div>
+          <div className="flex items-center gap-3 px-4 md:px-6 py-3 md:py-0">
+            <div className="p-1.5 bg-orange-500/10 border border-orange-500/20">
+              <ShoppingBag size={16} className="text-orange-400" />
+            </div>
+            <div>
+              <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Training HQ</div>
+              <div className="font-fantasy font-bold text-sm uppercase tracking-wider">Brawlers Store</div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pl-6 border-l-2 border-[#1a1a2e] ml-auto">
+        {/* Bottom/Right Section */}
+        <div className="flex items-center gap-3 px-6 py-3 md:py-0 md:pl-6 md:border-l-2 border-[#1a1a2e] md:ml-auto justify-end bg-[#0c0c18] md:bg-transparent">
           <div className="flex flex-col items-end">
             <div className="text-[9px] font-black text-white/30 uppercase tracking-widest">Brawlers XP</div>
             <div className="flex items-center gap-1.5">
