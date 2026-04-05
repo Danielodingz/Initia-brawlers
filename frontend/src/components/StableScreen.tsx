@@ -135,49 +135,63 @@ const StableScreen: React.FC<StableScreenProps> = ({
       />
 
       {/* ── PIXEL HEADER ────────────────────────────────── */}
-      <header className="relative z-30 bg-[#0a0a14] border-b-2 border-[#1a1a2e] px-6 py-0 flex items-stretch justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-6 border-r-2 border-[#1a1a2e] pr-6">
-          <img
-            src="/logo1.png"
-            alt="Initia Brawlers"
-            className="h-8 w-auto drop-shadow-[0_0_10px_rgba(234,88,12,0.3)]"
-          />
-        </div>
-        {/* Nav */}
-        <nav className="hidden md:flex items-stretch gap-0">
-          {[
-            { icon: <Trophy size={13} />, label: 'Tournament', action: onViewTournament },
-            { icon: <BarChart3 size={13} />, label: 'Leaderboard', action: onViewLeaderboard },
-            { icon: <ShoppingBag size={13} />, label: 'Store', action: onViewStore },
-          ].map(({ icon, label, action }) => (
-            <button
-              key={label}
-              onClick={action}
-              className="flex items-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-white/30
-                hover:text-white hover:bg-white/[0.04] border-r-2 border-[#1a1a2e] transition-colors"
-            >
-              {icon}
-              {label}
-            </button>
-          ))}
-        </nav>
-        {/* XP Balance Pill */}
-        <div className="hidden md:flex items-center gap-2 px-4 border-r-2 border-[#1a1a2e]">
-          <span className="text-orange-500/60 text-xs">✦</span>
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Brawlers XP</span>
-            <span className="text-sm font-black text-orange-400 tabular-nums">{xp.toLocaleString()}</span>
+      <header className="relative z-30 bg-[#0a0a14] border-b-2 border-[#1a1a2e] flex flex-col md:flex-row items-stretch">
+        
+        {/* Top row (mobile) / Left section (desktop): Logo + Wallet */}
+        <div className="flex items-center justify-between w-full md:w-auto md:border-r-2 md:border-[#1a1a2e]">
+          {/* Logo */}
+          <div className="flex items-center gap-6 px-6 py-3 md:py-0 h-full">
+            <img
+              src="/logo1.png"
+              alt="Initia Brawlers"
+              className="h-8 w-auto drop-shadow-[0_0_10px_rgba(234,88,12,0.3)]"
+            />
           </div>
-          {activePowerUps.length > 0 && (
-            <div className="ml-1 px-1.5 py-0.5 bg-orange-500/20 border border-orange-500/40 text-[8px] font-black text-orange-400 uppercase">
-              {activePowerUps.length} buff{activePowerUps.length > 1 ? 's' : ''}
-            </div>
-          )}
+          {/* Wallet (Mobile only top row) */}
+          <div className="md:hidden pr-4">
+            <WalletConnect />
+          </div>
         </div>
-        {/* Wallet */}
-        <div className="flex items-center pl-4 ml-auto">
-          <WalletConnect />
+
+        {/* Bottom row (mobile) / Right section (desktop): Nav + XP + Wallet */}
+        <div className="flex-1 flex overflow-x-auto border-t-2 border-[#1a1a2e] md:border-t-0 md:overflow-visible">
+          {/* Nav */}
+          <nav className="flex items-stretch gap-0 border-r-2 border-[#1a1a2e]">
+            {[
+              { icon: <Trophy size={13} />, label: 'Tournament', action: onViewTournament },
+              { icon: <BarChart3 size={13} />, label: 'Leaderboard', action: onViewLeaderboard },
+              { icon: <ShoppingBag size={13} />, label: 'Store', action: onViewStore },
+            ].map(({ icon, label, action }) => (
+              <button
+                key={label}
+                onClick={action}
+                className="flex items-center gap-2 px-4 md:px-5 py-3 md:py-4 text-[10px] font-black uppercase tracking-widest text-white/30
+                  hover:text-white hover:bg-white/[0.04] border-r-2 border-[#1a1a2e] transition-colors last:border-r-0 whitespace-nowrap"
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
+          </nav>
+          
+          {/* XP Balance Pill */}
+          <div className="flex flex-shrink-0 items-center gap-2 px-4 md:border-r-2 border-[#1a1a2e]">
+            <span className="text-orange-500/60 text-xs">✦</span>
+            <div className="flex flex-col items-end">
+              <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Brawlers XP</span>
+              <span className="text-sm font-black text-orange-400 tabular-nums">{xp.toLocaleString()}</span>
+            </div>
+            {activePowerUps.length > 0 && (
+              <div className="ml-1 px-1.5 py-0.5 bg-orange-500/20 border border-orange-500/40 text-[8px] font-black text-orange-400 uppercase">
+                {activePowerUps.length} buff{activePowerUps.length > 1 ? 's' : ''}
+              </div>
+            )}
+          </div>
+
+          {/* Wallet (Desktop only) */}
+          <div className="hidden md:flex items-center pl-4 pr-6 ml-auto">
+            <WalletConnect />
+          </div>
         </div>
       </header>
 
