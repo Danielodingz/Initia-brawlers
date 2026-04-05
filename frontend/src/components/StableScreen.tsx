@@ -154,9 +154,9 @@ const StableScreen: React.FC<StableScreenProps> = ({
         </div>
 
         {/* Bottom row (mobile) / Right section (desktop): Nav + XP + Wallet */}
-        <div className="flex-1 flex overflow-x-auto border-t-2 border-[#1a1a2e] md:border-t-0 md:overflow-visible">
+        <div className="flex-1 flex overflow-x-auto hide-scrollbar border-t-2 border-[#1a1a2e] md:border-t-0 md:overflow-visible">
           {/* Nav */}
-          <nav className="flex items-stretch gap-0 border-r-2 border-[#1a1a2e]">
+          <nav className="flex items-stretch gap-0 border-r-2 border-[#1a1a2e] flex-shrink-0">
             {[
               { icon: <Trophy size={13} />, label: 'Tournament', action: onViewTournament },
               { icon: <BarChart3 size={13} />, label: 'Leaderboard', action: onViewLeaderboard },

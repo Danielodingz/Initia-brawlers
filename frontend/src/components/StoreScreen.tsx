@@ -178,12 +178,12 @@ const StoreScreen: React.FC<StoreScreenProps> = ({ onBack }) => {
       </header>
 
       {/* ── TABS ────────────────────────────────────────────── */}
-      <div className="relative z-20 bg-[#0a0a14] border-b-2 border-[#1a1a2e] flex overflow-x-auto">
+      <div className="relative z-20 bg-[#0a0a14] border-b-2 border-[#1a1a2e] flex overflow-x-auto hide-scrollbar">
         {TAB_CONFIG.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-4 text-[10px] font-black uppercase tracking-widest border-r-2 border-[#1a1a2e] transition-all whitespace-nowrap flex-shrink-0
+            className={`flex items-center justify-center gap-2 px-5 py-4 text-[10px] sm:text-[10px] font-black uppercase tracking-widest border-r-2 border-[#1a1a2e] transition-all whitespace-nowrap flex-shrink-0
               ${activeTab === tab.id
                 ? 'text-orange-400 bg-orange-500/5 border-b-2 border-b-orange-500 -mb-[2px]'
                 : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
