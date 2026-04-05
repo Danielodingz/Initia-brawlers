@@ -3,13 +3,14 @@ import LandingScreen from './components/LandingScreen'
 import MintScreen from './components/MintScreen'
 import StableScreen from './components/StableScreen'
 import BattleArena from './components/BattleArena'
+import StoreScreen from './components/StoreScreen'
 import TournamentDashboard from './components/TournamentDashboard'
 import TournamentBracket from './components/TournamentBracket'
 import Leaderboard from './components/Leaderboard'
 import { useCreature } from './hooks/useCreature'
 import { useInterwovenKit } from './hooks/useInterwovenKit'
 
-type Screen = 'landing' | 'mint' | 'stable' | 'battle' | 'tournament'
+type Screen = 'landing' | 'mint' | 'stable' | 'battle' | 'tournament' | 'store'
 
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('landing')
@@ -78,6 +79,7 @@ const App: React.FC = () => {
             setScreen('tournament');
           }}
           onViewLeaderboard={() => setShowLeaderboard(true)}
+          onViewStore={() => setScreen('store')}
         />
       )}
 
@@ -89,6 +91,10 @@ const App: React.FC = () => {
           onFinish={() => setScreen('stable')} 
           onNextLevel={handleNextLevel}
         />
+      )}
+
+      {screen === 'store' && (
+        <StoreScreen onBack={() => setScreen('stable')} />
       )}
 
       {screen === 'tournament' && (

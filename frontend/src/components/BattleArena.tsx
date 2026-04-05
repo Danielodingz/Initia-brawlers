@@ -7,6 +7,7 @@ import { useAutoSign } from '../hooks/useAutoSign'
 import { MoveType, ActiveBattle } from '../lib/types'
 import { MOVE_DESCRIPTIONS, MOCK_MODE } from '../lib/constants'
 import { resolveTurn, botChooseMove } from '../lib/mockBattle'
+import { useBrawlerXP, calcXpReward } from '../hooks/useBrawlerXP'
 import { Swords, Info, Coins, Loader2, Timer } from 'lucide-react'
 
 interface BattleArenaProps {
@@ -35,6 +36,10 @@ const BattleArena: React.FC<BattleArenaProps> = ({
   const [selectedMove, setSelectedMove] = useState<MoveType | null>(null)
   const [hoveredMove, setHoveredMove] = useState<MoveType | null>(null)
   const [winReason, setWinReason] = useState<'ko' | 'decision' | null>(null)
+  const [xpAwarded, setXpAwarded] = useState<number | null>(null)
+
+  // XP system
+  const { addXp, activePowerUps, consumePowerUps } = useBrawlerXP()
   
   // FORCE MOCK LOGIC for PVE to keep it instant and gas-free
   const isPve = !!botLevel;
@@ -49,10 +54,25 @@ const BattleArena: React.FC<BattleArenaProps> = ({
   useEffect(() => {
     if (useMock && !mockBattle) {
       // Find actual player creature or fallback
-      const playerBrawler = creatures?.find((c: any) => c.id === playerCreatureId) || {
+      let playerBrawler = creatures?.find((c: any) => c.id === playerCreatureId) || {
         id: 1, name: 'Brawler', element: 'Fire' as any, rarity: 'Common' as any,
         level: 1, xp: 0, hp: 120, maxHp: 120, attack: 15, defense: 12, speed: 14,
         specialPower: 18, wins: 0, losses: 0, inBattle: true
+      }
+
+      // Apply active power-ups to player brawler stats
+      if (activePowerUps.length > 0) {
+        let boosted = { ...playerBrawler }
+        for (const pu of activePowerUps) {
+          const key = pu.statKey as keyof typeof boosted
+          if (typeof boosted[key] === 'number') {
+            (boosted as any)[key] = Math.round((boosted[key] as number) * pu.multiplier)
+          }
+        }
+        // Sync maxHp if hp was boosted
+        if (boosted.maxHp !== playerBrawler.maxHp) boosted.hp = boosted.maxHp
+        playerBrawler = boosted
+        consumePowerUps()
       }
 
       // SCALE BOT STATS based on botLevel
@@ -144,6 +164,11 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           newState = 'finished'
           winner = newBotHp <= 0 ? prev.player1 : prev.player2
           setWinReason('ko')
+          // Award XP
+          const isWin = newBotHp <= 0
+          const earned = calcXpReward(isWin, botLevel, 'ko')
+          addXp(earned)
+          setXpAwarded(earned)
         } else if (isDecision) {
           newState = 'finished'
           // Winner = higher remaining HP percentage
@@ -151,6 +176,11 @@ const BattleArena: React.FC<BattleArenaProps> = ({
           const botPct = newBotHp / prev.creature2.maxHp
           winner = playerPct >= botPct ? prev.player1 : prev.player2
           setWinReason('decision')
+          // Award XP
+          const isWin = playerPct >= botPct
+          const earned = calcXpReward(isWin, botLevel, 'decision')
+          addXp(earned)
+          setXpAwarded(earned)
         }
 
         return {
@@ -516,6 +546,17 @@ const BattleArena: React.FC<BattleArenaProps> = ({
                 >
                   {winReason === 'decision' ? '▶ DECISION — HP ADVANTAGE' : '▶ KNOCKOUT'}
                 </div>
+
+                {/* XP Award Banner */}
+                {xpAwarded !== null && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/30 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <span className="text-orange-400 text-sm">✦</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">
+                      +{xpAwarded} Brawlers XP
+                    </span>
+                    <span className="text-orange-400 text-sm">✦</span>
+                  </div>
+                )}
               </div>
 
               {/* ── HP comparison (decision only) ─── */}

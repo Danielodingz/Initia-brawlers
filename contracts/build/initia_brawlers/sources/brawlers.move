@@ -3,6 +3,8 @@ module initia_brawlers::brawlers {
     use std::vector;
     use initia_std::table::{Self, Table};
     use initia_std::signer;
+ 
+    friend initia_brawlers::battle;
 
     // --- CONSTANTS ---
     const MAX_LEVEL: u64 = 20;
@@ -36,6 +38,7 @@ module initia_brawlers::brawlers {
     struct Registry has key {
         creatures: Table<address, vector<Creature>>,
         usernames: Table<address, String>,
+        registered_players: vector<address>,
         total_mints: u64,
     }
 
@@ -45,6 +48,7 @@ module initia_brawlers::brawlers {
         move_to(account, Registry {
             creatures: table::new(),
             usernames: table::new(),
+            registered_players: vector::empty(),
             total_mints: 0,
         });
     }
@@ -66,6 +70,7 @@ module initia_brawlers::brawlers {
 
         if (!table::contains(&registry.creatures, addr)) {
             table::add(&mut registry.creatures, addr, vector::empty());
+            vector::push_back(&mut registry.registered_players, addr);
         };
 
         let inventory = table::borrow_mut(&mut registry.creatures, addr);
@@ -140,6 +145,21 @@ module initia_brawlers::brawlers {
             *table::borrow(&registry.creatures, owner)
         } else {
             vector::empty()
+        }
+    }
+
+    #[view]
+    public fun get_all_players(): vector<address> acquires Registry {
+        borrow_global<Registry>(@initia_brawlers).registered_players
+    }
+
+    #[view]
+    public fun get_username(owner: address): String acquires Registry {
+        let registry = borrow_global<Registry>(@initia_brawlers);
+        if (table::contains(&registry.usernames, owner)) {
+            *table::borrow(&registry.usernames, owner)
+        } else {
+            std::string::utf8(b"")
         }
     }
 

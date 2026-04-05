@@ -6,7 +6,8 @@ import ChallengeNotifications from './ChallengeNotifications'
 import ConfirmModal from './ConfirmModal'
 import { useCreature } from '../hooks/useCreature'
 import { useBattle } from '../hooks/useBattle'
-import { Plus, Trophy, BarChart3, Zap, ChevronRight } from 'lucide-react'
+import { useBrawlerXP } from '../hooks/useBrawlerXP'
+import { Plus, Trophy, BarChart3, Zap, ChevronRight, ShoppingBag } from 'lucide-react'
 import { Creature } from '../lib/types'
 import { getCreatureImage } from '../lib/assets'
 import { ELEMENT_COLORS } from '../lib/constants'
@@ -16,16 +17,40 @@ interface StableScreenProps {
   onMint: () => void;
   onViewTournament: () => void;
   onViewLeaderboard: () => void;
+  onViewStore: () => void;
 }
 
 const StableScreen: React.FC<StableScreenProps> = ({
   onStartBattle,
   onMint,
   onViewTournament,
-  onViewLeaderboard
+  onViewLeaderboard,
+  onViewStore
 }) => {
   const { creatures, releaseCreature } = useCreature()
   const { acceptChallenge } = useBattle(null)
+  const { xp, activePowerUps, getExtraLevels } = useBrawlerXP()
+
+  // Merge store-purchased level boosts into a creature's displayed stats
+  const applyLevelBoosts = (creature: Creature): Creature => {
+    const extra = getExtraLevels(creature.id)
+    if (extra === 0) return creature
+    const hpGain   = extra * 10
+    const atkGain  = extra * 8
+    const defGain  = extra * 6
+    const spdGain  = extra * 5
+    const spGain   = extra * 4
+    return {
+      ...creature,
+      level:        creature.level + extra,
+      attack:       creature.attack + atkGain,
+      defense:      creature.defense + defGain,
+      speed:        creature.speed + spdGain,
+      specialPower: creature.specialPower + spGain,
+      maxHp:        creature.maxHp + hpGain,
+      hp:           creature.hp + hpGain,
+    }
+  }
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [showChallengeModal, setShowChallengeModal] = useState(false)
   const [isAcceptingChallenge, setIsAcceptingChallenge] = useState(false)
@@ -86,6 +111,7 @@ const StableScreen: React.FC<StableScreenProps> = ({
   }
 
   const selectedCreature = creatures?.find(c => c.id === selectedId)
+  const boostedSelectedCreature = selectedCreature ? applyLevelBoosts(selectedCreature) : undefined
 
   return (
     <div className="min-h-screen bg-[#07070f] text-white flex flex-col relative overflow-hidden">
@@ -123,6 +149,7 @@ const StableScreen: React.FC<StableScreenProps> = ({
           {[
             { icon: <Trophy size={13} />, label: 'Tournament', action: onViewTournament },
             { icon: <BarChart3 size={13} />, label: 'Leaderboard', action: onViewLeaderboard },
+            { icon: <ShoppingBag size={13} />, label: 'Store', action: onViewStore },
           ].map(({ icon, label, action }) => (
             <button
               key={label}
@@ -135,6 +162,19 @@ const StableScreen: React.FC<StableScreenProps> = ({
             </button>
           ))}
         </nav>
+        {/* XP Balance Pill */}
+        <div className="hidden md:flex items-center gap-2 px-4 border-r-2 border-[#1a1a2e]">
+          <span className="text-orange-500/60 text-xs">✦</span>
+          <div className="flex flex-col items-end">
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Brawlers XP</span>
+            <span className="text-sm font-black text-orange-400 tabular-nums">{xp.toLocaleString()}</span>
+          </div>
+          {activePowerUps.length > 0 && (
+            <div className="ml-1 px-1.5 py-0.5 bg-orange-500/20 border border-orange-500/40 text-[8px] font-black text-orange-400 uppercase">
+              {activePowerUps.length} buff{activePowerUps.length > 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
         {/* Wallet */}
         <div className="flex items-center pl-4 ml-auto">
           <WalletConnect />
@@ -159,15 +199,18 @@ const StableScreen: React.FC<StableScreenProps> = ({
 
           {/* Cards grid */}
           <div className="flex-1 p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 content-start">
-            {creatures?.map(creature => (
-              <CreatureCard
-                key={creature.id}
-                creature={creature}
-                selected={selectedId === creature.id}
-                onClick={() => setSelectedId(creature.id)}
-                onRelease={() => handleRelease(creature.id)}
-              />
-            ))}
+            {creatures?.map(creature => {
+              const boosted = applyLevelBoosts(creature)
+              return (
+                <CreatureCard
+                  key={creature.id}
+                  creature={boosted}
+                  selected={selectedId === creature.id}
+                  onClick={() => setSelectedId(creature.id)}
+                  onRelease={() => handleRelease(creature.id)}
+                />
+              )
+            })}
 
             {/* Add new slot */}
             {(creatures?.length || 0) < 6 && (
@@ -205,30 +248,35 @@ const StableScreen: React.FC<StableScreenProps> = ({
 
           {/* Selected brawler or prompt */}
           <div className="flex-1 p-5 flex flex-col gap-4">
-            {selectedCreature ? (
+            {boostedSelectedCreature ? (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-200 flex flex-col gap-3">
                 {/* Selected brawler mini card */}
                 <div
                   className="flex items-center gap-3 p-3 border-2 bg-[#0c0c18]"
-                  style={{ borderColor: ELEMENT_COLORS[selectedCreature.element] + '44' }}
+                  style={{ borderColor: ELEMENT_COLORS[boostedSelectedCreature.element] + '44' }}
                 >
                   <img
-                    src={getCreatureImage(selectedCreature.element)}
+                    src={getCreatureImage(boostedSelectedCreature.element)}
                     className="w-12 h-12 object-contain"
                     style={{ imageRendering: 'pixelated' }}
                     alt=""
                   />
                   <div>
-                    <div className="font-fantasy font-bold text-sm">{selectedCreature.name}</div>
-                    <div className="text-[9px] font-black uppercase tracking-widest text-white/30 mt-0.5">
-                      ▶ Ready for combat
+                    <div className="font-fantasy font-bold text-sm">{boostedSelectedCreature.name}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-white/30">▶ Ready for combat</span>
+                      {boostedSelectedCreature.level > (selectedCreature?.level ?? 0) && (
+                        <span className="text-[8px] bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 px-1 font-black uppercase">
+                          LV.{boostedSelectedCreature.level}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Action buttons */}
                 <button
-                  onClick={() => handleStartPve(selectedCreature)}
+                  onClick={() => handleStartPve(boostedSelectedCreature)}
                   className="w-full py-4 bg-orange-600 border-b-4 border-orange-800 font-black text-sm uppercase
                     tracking-widest flex items-center justify-center gap-2 transition-all
                     hover:brightness-110 active:border-b-0 active:translate-y-1"
@@ -285,13 +333,13 @@ const StableScreen: React.FC<StableScreenProps> = ({
       </main>
 
       {/* Modals */}
-      {showChallengeModal && selectedCreature && (
+      {showChallengeModal && boostedSelectedCreature && (
         <ChallengeModal
-          creatureId={selectedCreature.id}
+          creatureId={boostedSelectedCreature.id}
           onClose={() => setShowChallengeModal(false)}
           onChallengeStarted={(battleId) => {
             setShowChallengeModal(false)
-            onStartBattle(battleId, selectedCreature.id)
+            onStartBattle(battleId, boostedSelectedCreature.id)
           }}
         />
       )}

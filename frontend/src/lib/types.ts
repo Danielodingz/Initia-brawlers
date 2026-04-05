@@ -62,3 +62,22 @@ export interface LeaderboardEntry {
   tournamentWins: number;
   bestCreatureLevel: number;
 }
+
+export interface ActivePowerUp {
+  id: string;
+  name: string;
+  statKey: 'attack' | 'defense' | 'speed' | 'specialPower' | 'maxHp';
+  multiplier: number;
+  remainingBattles: number;
+}
+
+export interface StoreItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  cost: number;
+  type: 'powerup' | 'levelup' | 'cosmetic';
+  statKey?: 'attack' | 'defense' | 'speed' | 'specialPower' | 'maxHp';
+  multiplier?: number;
+}
