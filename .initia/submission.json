@@ -1,12 +1,12 @@
 {
   "project_name": "Initia Brawlers",
-  "repo_url": "https://github.com/macbookpro/initia-brawlers",
+  "repo_url": "https://github.com/Danielodingz/Initia-brawlers",
   "commit_sha": "main",
   "rollup_chain_id": "initia-brawlers-1",
-  "deployed_address": "0x1",
+  "deployed_address": "init1g329dvgxpqf6c6umly9q8g6643v3ecf3c8nqty",
   "vm": "move",
   "native_feature": "auto-signing",
   "core_logic_path": "contracts/sources/battle.move",
   "native_feature_frontend_path": "frontend/src/components/BattleArena.tsx",
-  "demo_video_url": ""
+  "demo_video_url": "https://youtu.be/SG2iRpG5fTs?si=xBinjUcfFMecioXY"
 }
