@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Trophy, Plus, Users, Coins, Swords, Sparkles, ChevronLeft } from 'lucide-react'
+import { Trophy, Plus, Users, Coins, Swords, Sparkles, ChevronLeft, Trash2 } from 'lucide-react'
 import { useTournament } from '../hooks/useTournament'
 import { Creature } from '../lib/types'
 import CreateTournamentModal from './CreateTournamentModal'
@@ -12,7 +12,7 @@ interface TournamentDashboardProps {
 }
 
 const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onViewBracket, creatures }) => {
-  const { tournaments, isLoading, joinTournament } = useTournament()
+  const { tournaments, isLoading, joinTournament, deleteTournament } = useTournament()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [joiningId, setJoiningId] = useState<number | null>(null)
   const [alertConfig, setAlertConfig] = useState<{ title: string; message: string; variant: 'danger' | 'warning' | 'info' } | null>(null)
@@ -43,6 +43,16 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onVie
       })
     } finally {
       setJoiningId(null)
+    }
+  }
+
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    try {
+      await deleteTournament(id);
+      // Optional: Add a success alert
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -200,7 +210,16 @@ const TournamentDashboard: React.FC<TournamentDashboardProps> = ({ onBack, onVie
                         >
                           {isOpen ? '▶ Registration Open' : '▶ Tournament Live'}
                         </div>
-                        <span className="text-[8px] font-black text-white/20 font-mono">#{t.id}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[8px] font-black text-white/20 font-mono">#{t.id}</span>
+                          <button
+                            onClick={(e) => handleDelete(e, t.id)}
+                            className="text-red-500/50 hover:text-red-500 transition-colors"
+                            title="Delete Tournament"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
                       <h3 className="text-lg font-fantasy font-black uppercase tracking-tight text-white leading-none">
                         {t.name || 'Initiate Clash'}

@@ -82,6 +82,12 @@ Host or join weekly tournaments. 8 players compete in a single-elimination brack
 - **Wallet Connection**: [@initia/interwovenkit-react](https://www.npmjs.com/package/@initia/interwovenkit-react)
 - **Animations**: HTML5 Canvas with custom pixel-art engine
 
+### Architecture Diagram
+<p align="center">
+  <img src="frontend/public/Initia L2 Appchain Ecosystem.png" />
+</p>
+
+
 ---
 
 ## 📦 Setting Up Locally

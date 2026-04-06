@@ -4,6 +4,33 @@ import { buildCreateTournament, buildEnterTournament, buildClaimPrize } from '..
 import { LCD_URL, CONTRACT_ADDRESS, MOCK_MODE } from '../lib/constants'
 import { TournamentEntry } from '../lib/types'
 
+// MOCK DATA SETUP
+let mockTournamentsList: TournamentEntry[] = [
+  {
+    id: 1,
+    name: "Initiate Clash",
+    participants: ["0xmock1", "0xmock2", "0xmock3"],
+    round: 1,
+    winner: null,
+    prizePool: 6.0,
+    isOpen: true,
+    entryFee: 2.0,
+    weekNumber: 3,
+  } as any,
+  {
+    id: 2,
+    name: "Brawler's Gauntlet",
+    participants: ["0xmock1", "0xmock2", "0xmock3", "0xmock4", "0xmock5", "0xmock6", "0xmock7", "0xmock8"],
+    round: 2,
+    winner: null,
+    prizePool: 8.0,
+    isOpen: false,
+    entryFee: 1.0,
+    weekNumber: 3,
+  } as any
+];
+let nextTournamentId = 3;
+
 export function useTournament() {
   const { address, requestTxBlock } = useInterwovenKit()
 
@@ -11,77 +38,64 @@ export function useTournament() {
   const { data: tournamentIds, isLoading: idsLoading } = useQuery({
     queryKey: ['tournamentIds'],
     queryFn: async (): Promise<number[]> => {
-      try {
-        const res = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            function_name: 'get_active_tournament_ids',
-            type_args: [],
-            args: [],
-          }),
-        });
-        const data = await res.json();
-        return (data.data || []).map(Number);
-      } catch (err) {
-        console.error("Failed to fetch tournament IDs:", err);
-        return [];
-      }
+      // USING MOCK DATA
+      return mockTournamentsList.map(t => t.id);
     },
     refetchInterval: 10000,
   });
 
   // Fetch details for all IDs
-  const { data: tournaments, isLoading: detailsLoading } = useQuery({
+  const { data: tournaments, isLoading: detailsLoading, refetch } = useQuery({
     queryKey: ['tournaments', tournamentIds],
     enabled: !!tournamentIds && tournamentIds.length > 0,
     queryFn: async (): Promise<TournamentEntry[]> => {
-      try {
-        const details = await Promise.all(tournamentIds!.map(async (id) => {
-          const res = await fetch(`${LCD_URL}/initia/move/v1/accounts/${CONTRACT_ADDRESS}/view_functions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              function_name: 'get_tournament',
-              type_args: [],
-              args: [id.toString()],
-            }),
-          });
-          const d = await res.json();
-          const raw = d.data;
-          
-          return {
-            id: Number(raw.id),
-            name: raw.name, // String is returned as string from rest api
-            participants: raw.participants || [],
-            round: (raw.participants?.length || 0) < 4 ? 1 : 2, // simplified logic for now
-            winner: raw.winner === '0x0' ? null : raw.winner,
-            prizePool: Number(raw.entry_fee) * (raw.participants?.length || 0) / 1_000_000,
-            isOpen: raw.state === 0,
-            entryFee: Number(raw.entry_fee) / 1_000_000,
-            weekNumber: 3, // hardcoded for theme
-          } as any;
-        }));
-        return details;
-      } catch (err) {
-        console.error("Failed to fetch tournament details:", err);
-        return [];
-      }
+      // USING MOCK DATA
+      return mockTournamentsList;
     },
     refetchInterval: 10000,
   });
 
+
   const createTournament = async (name: string, feeInit: number) => {
-    if (!address) throw new Error('Wallet not connected');
-    const uinitFee = feeInit * 1_000_000;
-    const message = buildCreateTournament(address, name, uinitFee);
-    return await requestTxBlock({ messages: [message] });
+    // USING MOCK DATA
+    const newTournament = {
+      id: nextTournamentId++,
+      name: name || "Custom Tournament",
+      participants: [],
+      round: 1,
+      winner: null,
+      prizePool: 0,
+      isOpen: true,
+      entryFee: feeInit,
+      weekNumber: 3,
+    };
+    mockTournamentsList.unshift(newTournament as any);
+    await refetch();
+    return { transactionHash: 'mock_tx_hash' };
   };
 
   const joinTournament = async (tournamentId: number, creatureId: number) => {
-    if (!address) throw new Error('Wallet not connected');
-    const message = buildEnterTournament(address, tournamentId, creatureId);
-    return await requestTxBlock({ messages: [message] });
+    // USING MOCK DATA
+    const t = mockTournamentsList.find((t) => t.id === tournamentId);
+    if (!t) throw new Error('Tournament not found');
+    if (t.participants.length >= 8) throw new Error('Tournament is full');
+    
+    t.participants.push(`0xuser_creature_${creatureId}`);
+    t.prizePool += t.entryFee;
+    if (t.participants.length === 8) {
+       t.isOpen = false;
+    }
+    await refetch();
+    return { transactionHash: 'mock_tx_hash' };
+  };
+
+  const deleteTournament = async (tournamentId: number) => {
+    // USING MOCK DATA
+    const index = mockTournamentsList.findIndex((t) => t.id === tournamentId);
+    if (index === -1) throw new Error('Tournament not found');
+    mockTournamentsList.splice(index, 1);
+    await refetch();
+    return { transactionHash: 'mock_tx_hash' };
   };
 
   return {
@@ -89,5 +103,6 @@ export function useTournament() {
     isLoading: idsLoading || detailsLoading,
     createTournament,
     joinTournament,
+    deleteTournament,
   }
 }
